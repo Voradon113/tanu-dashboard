@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TANU DASHBOARD</title>
+<style>
+  :root{
+    --bg:#0a0c0f; --panel:#13171c; --panel2:#191e25; --line:#242b34;
+    --ink:#eae8e1; --dim:#8b95a1; --faint:#565f6a;
+    --gold:#e6b53f; --gold2:#f6d478; --up:#37c08a; --down:#e56048;
+    --blue:#4f8cd0; --mono:'DejaVu Sans Mono','SF Mono',ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:
+    radial-gradient(1200px 500px at 80% -10%,rgba(230,181,63,.06),transparent),var(--bg);
+    color:var(--ink);font-family:'Trebuchet MS',system-ui,'Segoe UI',sans-serif;font-size:14px}
+  .wrap{max-width:1300px;margin:0 auto;padding:14px}
+  .top{display:flex;align-items:center;justify-content:space-between;
+    padding:11px 15px;background:linear-gradient(90deg,var(--panel),#161b21);
+    border:1px solid var(--line);border-radius:12px}
+  .brand{display:flex;align-items:center;gap:11px}
+  .coin{width:30px;height:30px;border-radius:50%;flex:0 0 30px;
+    background:radial-gradient(circle at 35% 30%,#ffe9a8,var(--gold) 55%,#9c7712);
+    box-shadow:0 0 14px rgba(230,181,63,.45);display:flex;align-items:center;justify-content:center;
+    font-weight:800;color:#5c4406;font-size:14px;font-family:var(--mono)}
+  .brand b{letter-spacing:.6px;font-size:15px}
+  .brand span{color:var(--faint);font-size:12px;margin-left:2px}
+  .clock{font-family:var(--mono);color:var(--dim);font-size:13px}
+  .badge{font-family:var(--mono);font-size:11px;padding:3px 9px;border-radius:20px;
+    border:1px solid var(--line);color:var(--gold);background:rgba(230,181,63,.06)}
+  .grid{display:grid;grid-template-columns:1.15fr .85fr;gap:14px;margin-top:14px}
+  @media(max-width:880px){.grid{grid-template-columns:1fr}}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+  .phead{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .phead h2{margin:0;font-size:12px;letter-spacing:1.6px;color:var(--dim);text-transform:uppercase;font-weight:600}
+  .tag{font-family:var(--mono);font-size:11px;padding:2px 8px;border-radius:6px;background:var(--panel2);color:var(--gold)}
+  .desk{display:flex;gap:12px;align-items:center;background:var(--panel2);
+    border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:14px}
+  .agent{width:46px;height:46px;flex:0 0 46px;border-radius:9px;position:relative;
+    background:repeating-linear-gradient(45deg,#1f252d,#1f252d 4px,#242c35 4px,#242c35 8px);border:1px solid var(--line)}
+  .agent::after{content:"";position:absolute;left:11px;top:9px;width:24px;height:15px;border-radius:3px;
+    background:var(--gold);box-shadow:0 0 12px rgba(230,181,63,.55)}
+  .agent::before{content:"";position:absolute;left:16px;top:27px;width:14px;height:10px;background:#3a4652;border-radius:2px}
+  .deskmeta{flex:1}
+  .deskmeta .r{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;padding:1px 0}
+  .deskmeta .r span:first-child{color:var(--faint)}
+  .working{font-family:var(--mono);font-size:10px;color:var(--up);letter-spacing:1px}
+  .biaswrap{text-align:center;padding:4px 0 2px}
+  .bignum{font-family:var(--mono);font-size:42px;font-weight:700;line-height:1}
+  .biaslabel{font-size:13px;color:var(--dim);margin-top:3px}
+  .track{height:8px;border-radius:5px;margin:10px 6px 0;
+    background:linear-gradient(90deg,var(--down),#3a4048 47%,#3a4048 53%,var(--up))}
+  .needle{position:relative;height:0}
+  .needle i{position:absolute;top:-14px;width:2px;height:16px;background:var(--gold);
+    box-shadow:0 0 8px var(--gold);transform:translateX(-1px)}
+  .scale{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--faint);margin:4px 6px 0}
+  table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:13px}
+  th{color:var(--faint);font-weight:400;text-align:right;padding:5px 8px;font-size:11px;text-transform:uppercase;border-bottom:1px solid var(--line)}
+  th:first-child,td:first-child{text-align:left}
+  td{padding:6px 8px;border-bottom:1px solid #191e24}
+  tr:last-child td{border-bottom:none}
+  .z-mid td{background:rgba(230,181,63,.08)}
+  .zdot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle}
+  .g{background:var(--up)} .y{background:var(--gold)} .w{background:var(--faint)}
+  .price-now{color:var(--gold2);font-weight:700}
+  .heat{display:flex;flex-direction:column;gap:3px}
+  .hrow{display:flex;align-items:center;gap:8px}
+  .hk{width:46px;font-family:var(--mono);font-size:12px;color:var(--dim);text-align:right}
+  .hcell{flex:1;height:26px;border-radius:5px;display:flex;align-items:center;padding:0 9px;
+    font-family:var(--mono);font-size:11px;color:#eafff6;position:relative;overflow:hidden}
+  .hcell .oi{margin-left:auto;opacity:.9}
+  .hcell.now{outline:2px solid var(--gold);outline-offset:-2px}
+  .htag{position:absolute;left:9px;font-size:9px;letter-spacing:1px;opacity:.75}
+  .sess{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .scell{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px;text-align:center}
+  .scell.live{border-color:var(--gold);box-shadow:inset 0 0 0 1px rgba(230,181,63,.3)}
+  .scell b{display:block;font-size:12px;letter-spacing:1px}
+  .scell small{color:var(--faint);font-family:var(--mono);font-size:10px}
+  .slive{color:var(--gold);font-size:10px;font-family:var(--mono);letter-spacing:1px}
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .stat{background:var(--panel2);border-radius:8px;padding:10px}
+  .stat small{color:var(--faint);font-size:10px;text-transform:uppercase;display:block}
+  .stat b{font-family:var(--mono);font-size:19px;display:block;margin-top:3px}
+  .chartmeta{display:flex;gap:16px;flex-wrap:wrap;font-family:var(--mono);font-size:12px;margin-bottom:8px}
+  .chartmeta span b{color:var(--up)}
+  .chartmeta .dd b{color:var(--down)}
+  svg{display:block;width:100%;height:auto}
+  .log{font-family:var(--mono);font-size:11.5px;max-height:200px;overflow:auto}
+  .log .l{display:grid;grid-template-columns:52px 66px 1fr auto;gap:8px;padding:3px 0;border-bottom:1px solid #161b21;color:var(--dim)}
+  .log .l b{color:var(--ink)}
+  .pos{color:var(--up)} .neg{color:var(--down)}
+  .foot{margin-top:14px;color:var(--faint);font-size:11px;text-align:center;line-height:1.6}
+
+  .planbias{font-family:var(--mono);font-size:22px;font-weight:700;margin-bottom:12px}
+  .planzones{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+  .planrow{display:flex;align-items:flex-start;gap:10px;font-size:14px;line-height:1.5;
+    background:var(--panel2);border-radius:8px;padding:10px 12px;border-left:3px solid var(--line)}
+  .planrow.long{border-left-color:var(--up)}
+  .planrow.short{border-left-color:var(--down)}
+  .planrow.watch{border-left-color:var(--gold)}
+  .planrow .ic{font-size:16px;flex:0 0 auto}
+  .planrow b{color:var(--gold2)}
+  .planrules{display:flex;flex-wrap:wrap;gap:8px}
+  .prule{font-size:12px;padding:5px 10px;border-radius:20px;background:rgba(229,96,72,.12);
+    color:#f0a898;border:1px solid rgba(229,96,72,.25)}
+  .full{grid-column:1 / -1}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand">
+      <span class="coin">Au</span>
+      <b>TANU DASHBOARD</b><span>ตามรายใหญ่ · options-driven</span>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center">
+      <span class="working" id="livedot" style="font-size:11px">● …</span>
+      <span class="badge" id="sessBadge">— SESSION</span>
+      <span class="clock" id="clock">--:--:--</span>
+    </div>
+  </div>
+
+    <!-- แผนวันนี้ (full) -->
+    <div class="panel full" style="border-color:rgba(230,181,63,.35)">
+      <div class="phead"><h2>🎯 แผนวันนี้ · Trade Plan</h2><span class="tag" id="planUpd">—</span></div>
+      <div id="planBox">
+        <div class="planbias" id="planBias">Bias —</div>
+        <div class="planzones" id="planZones"></div>
+        <div class="planrules" id="planRules"></div>
+      </div>
+    </div>
+
+  <div class="grid">
+    <div class="panel">
+      <div class="phead"><h2>🥇 Gold Flow Desk</h2><span class="tag" id="contract">GC AUG26</span></div>
+      <div class="desk">
+        <div class="agent"></div>
+        <div class="deskmeta">
+          <div class="r"><span>สถานะ</span><span class="working">● WATCHING</span></div>
+          <div class="r"><span>ราคา GC / CFD</span><span id="px">—</span></div>
+          <div class="r"><span>IV (ATM)</span><span id="iv">—</span></div>
+        </div>
+      </div>
+      <div class="biaswrap">
+        <div class="bignum" id="biasNum">+35</div>
+        <div class="biaslabel" id="biasLbl">ขาขึ้น</div>
+        <div class="track"></div>
+        <div class="needle"><i id="needle"></i></div>
+        <div class="scale"><span>-100</span><span>0</span><span>+100</span></div>
+      </div>
+      <div style="margin-top:14px">
+        <div class="phead"><h2 style="letter-spacing:1px">Zones · SD</h2><span class="tag" id="sdmeta">1SD ~59</span></div>
+        <table id="sdTable"></table>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="panel">
+        <div class="phead"><h2>🔥 OI Heatmap · Strike</h2><span class="tag" id="pcr">PCR 0.57</span></div>
+        <div class="heat" id="heat"></div>
+      </div>
+      <div class="panel">
+        <div class="phead"><h2>🕐 Session</h2><span class="tag">เวลาไทย</span></div>
+        <div class="sess" id="sessions"></div>
+      </div>
+    </div>
+    <div class="panel full">
+      <div class="phead"><h2>📈 Equity · Balance</h2><span class="working" id="pmwork">● LIVE</span></div>
+      <div class="chartmeta">
+        <span>Balance <b id="mBal">—</b></span>
+        <span>Equity <b id="mEq">—</b></span>
+        <span class="dd">Max DD <b id="mDD">—</b></span>
+        <span>P/L วันนี้ <b id="mPL">—</b></span>
+      </div>
+      <div class="chartwrap" id="chart"></div>
+    </div>
+    <div class="panel">
+      <div class="phead"><h2>🛡️ Risk · PM</h2><span class="tag">exposure</span></div>
+      <div class="stats" id="risk"></div>
+    </div>
+    <div class="panel">
+      <div class="phead"><h2>📜 Activity Log</h2><span class="tag">mock</span></div>
+      <div class="log" id="log"></div>
+    </div>
+  </div>
+  <div class="foot">
+    ⚠️ ข้อมูลจำลอง (mock) — ยังไม่ต่อ MT5/JANIE · Bias &amp; SD = การวางตัวออปชั่น ไม่ใช่คำทำนาย · OIΔ ฟันธงซื้อ-ขายไม่ได้ · ไม่ใช่คำแนะนำการลงทุน<br>
+    จอนี้ไม่มีสิทธิ์เปิด/ปิดออเดอร์ MT5 — แสดงข้อมูลและแผนเท่านั้น เทรดเองด้วยมือ · เวอร์ชันถัดไป: JANIE → Google Sheet → จอนี้ (ค่าจริง)
+  </div>
+</div>
+<script>
+const MOCK = {
+  contract:'GC AUG26', priceGC:4140, priceCFD:4128, iv:45.86, ivChg:+0.18,
+  bias:+35, biasLabel:'ขาขึ้น (put กระจุกใต้ราคา = พื้นรับ)',
+  sd1:59, mid:4135,
+  sd:[
+    ['+3 SD',4268,'g','สวนแรง'],['+2 SD',4207,'y','จุดสวน'],['+1 SD',4160,'w','ข้าม'],
+    ['กลาง',4135,'mid','—'],
+    ['-1 SD',4076,'w','ข้าม'],['-2 SD',4015,'y','จุดสวน'],['-3 SD',3969,'g','สวนแรง'],
+  ],
+  pcr:0.57,
+  heat:[
+    ['4200','c',3050],['4150','c',5210],['4145','c',4400],
+    ['4140','now',0],
+    ['4120','p',4296],['4100','p',3480],['4000','p',4279],['3950','p',2210],
+  ],
+  sessions:[['ASIA','07–14','asia'],['LONDON','14–21','london'],['NY','19–03','ny']],
+  risk:[['พอร์ตรวม','$237,468'],['P/L วันนี้','+$308','pos'],['Drawdown','0.45%'],['Exposure','62%']],
+  equity:[210,208,213,206,217,214,225,231,222,236,240,233,247,244,238,255,251,268,262,281,275,290,308],
+  balance:237468, equityNow:237322, plToday:308, maxDD:'0.45%',
+  plan:{
+    updated:'mock', biasText:'Bias +35 · ขาขึ้นอ่อน (put กระจุกใต้ราคา = พื้นรับ)',
+    zones:[
+      {type:'long', text:'รับที่ <b>4120</b> (put wall) — เด้งขึ้นได้ถ้ายืนเหนือ'},
+      {type:'watch', text:'ดึงกลับทดสอบ <b>4135</b> (mean) · รอสัญญาณ W'},
+      {type:'short', text:'สวนที่ <b>4207</b> (+2SD) — ถ้าชนแล้วอ่อน'},
+    ],
+    rules:['เกิน Mean 4135 ลดของ','ต่ำกว่า 4120 ระวัง','ไม่ไล่ราคา']
+  },
+  log:[
+    ['GOLD','BUY_ENTRY','XAUUSD 0.13 @ 4058.4','+0.00'],
+    ['FLOW','OI_READ','call 4300-4500 เปิดใหม่','bias +35'],
+    ['GOLD','BUY_EXIT','XAUUSD 0.13 @ 4064.1','+38.19','pos'],
+    ['SD','ZONE_HIT','ดึงกลับทดสอบ 4130 · รอ W','watch'],
+    ['FLOW','WALL_MOVE','put 4120 กระจุก = พื้นรับ','—'],
+    ['GOLD','SELL_EXIT','XAUUSD 0.13 @ 4710.8','-11.39','neg'],
+    ['PM','RISK_CHECK','exposure 62% · ok','—'],
+  ]
+};
+
+/* ========== LIVE: ดึงค่าจริงจาก JANIE (Apps Script) ========== */
+const ENDPOINT = "https://script.google.com/macros/s/AKfycbyi4ldRXWSnFiLI9MdPbDRx_IqIM1wwRS8VV-5L7ibw76CBzUTsy8m7X_jtcsAqotOX/exec";
+let DATA = JSON.parse(JSON.stringify(MOCK));  // เริ่มด้วย mock ก่อน
+
+// แปลง payload จาก JANIE (walls/pcr/heat/intraday) → รูปแบบที่จอใช้
+function mergeLive(p){
+  if(!p) return;
+  DATA.contract = p.contract || DATA.contract;
+  if(typeof p.pcr==='number') DATA.pcr = p.pcr;
+  // walls: [strike, oi, chg]
+  if(p.callWalls && p.callWalls.length) DATA.callWalls = p.callWalls.map(w=>[String(w[0]),Number(w[1]),Number(w[2])]);
+  if(p.putWalls && p.putWalls.length)   DATA.putWalls  = p.putWalls.map(w=>[String(w[0]),Number(w[1]),Number(w[2])]);
+  // heatmap: [strike, side, oi] — แทรกแถวราคาปัจจุบันถ้ามี intraday.price
+  if(p.heat && p.heat.length){
+    let rows = p.heat.map(h=>[String(h[0]),h[1],Number(h[2])]);
+    const px = (p.intraday && p.intraday.priceGC) ? Number(p.intraday.priceGC) : (DATA.priceGC||null);
+    if(px){
+      // หาตำแหน่งแทรก marker ราคาปัจจุบัน (ระหว่าง strike ที่ครอบราคา)
+      let out=[], placed=false;
+      for(let i=0;i<rows.length;i++){
+        if(!placed && Number(rows[i][0]) < px){ out.push([String(Math.round(px)),'now',0]); placed=true; }
+        out.push(rows[i]);
+      }
+      if(!placed) out.push([String(Math.round(px)),'now',0]);
+      rows = out;
+    }
+    DATA.heat = rows;
+  }
+  // intraday overrides (ถ้าพี่กรอกในแท็บ input: priceGC/priceCFD/iv/ivChg/bias/sd1)
+  const iv = p.intraday || {};
+  if(iv.priceGC!=null && iv.priceGC!=='') DATA.priceGC = Number(iv.priceGC);
+  if(iv.priceCFD!=null && iv.priceCFD!=='') DATA.priceCFD = Number(iv.priceCFD);
+  if(iv.iv!=null && iv.iv!=='') DATA.iv = Number(iv.iv);
+  if(iv.ivChg!=null && iv.ivChg!=='') DATA.ivChg = Number(iv.ivChg);
+  if(iv.bias!=null && iv.bias!=='') DATA.bias = Number(iv.bias);
+  if(iv.biasLabel) DATA.biasLabel = String(iv.biasLabel);
+  if(iv.sd1!=null && iv.sd1!=='') DATA.sd1 = Number(iv.sd1);
+  // แผนจากแท็บ input (เก็บเป็น JSON string ในเซลล์ key='plan')
+  if(iv.plan){
+    try{ DATA.plan = (typeof iv.plan==='string') ? JSON.parse(iv.plan) : iv.plan; }catch(e){}
+  }
+  // หรืออ่านแบบแยก field: planBias / planZones / planRules
+  if(iv.planBias){ DATA.plan=DATA.plan||{}; DATA.plan.biasText=iv.planBias; DATA.plan.updated=p.updated; }
+  if(iv.planText){ DATA.plan=DATA.plan||{}; DATA.plan.updated=p.updated;
+    DATA.plan.zones=[{type:'watch', text:String(iv.planText)}]; }
+  if(iv.mean!=null && iv.mean!==''){ DATA.plan=DATA.plan||{};
+    DATA.plan.rules=(DATA.plan.rules||[]).filter(function(r){return r.indexOf('Mean')<0;});
+    DATA.plan.rules.push('เกิน Mean '+iv.mean+' ลดของ'); }
+  if(iv.equity!=null && iv.equity!==''){ DATA.balance=Number(iv.balance||iv.equity); DATA.equityNow=Number(iv.equity); }
+  if(iv.plToday!=null && iv.plToday!=='') DATA.plToday=Number(iv.plToday);
+}
+
+async function loadLive(){
+  try{
+    const res = await fetch(ENDPOINT, {cache:'no-store'});
+    if(!res.ok) throw new Error('http '+res.status);
+    const p = await res.json();
+    mergeLive(p);
+    renderAll();
+    setStatus(true, p.updated);
+  }catch(err){
+    console.warn('live fetch failed, ใช้ mock:', err);
+    setStatus(false);
+  }
+}
+
+function setStatus(ok, updated){
+  const el = document.getElementById('livedot');
+  if(!el) return;
+  if(ok){
+    el.textContent = '● LIVE';
+    el.style.color = 'var(--up)';
+    el.title = 'อัปเดต: ' + (updated||'');
+  }else{
+    el.textContent = '● MOCK';
+    el.style.color = 'var(--faint)';
+  }
+}
+
+const $=id=>document.getElementById(id);
+const fmt=n=>Math.round(n).toLocaleString();
+
+function renderAll(){
+$('contract').textContent=DATA.contract;
+$('px').textContent=fmt(DATA.priceGC)+' / '+fmt(DATA.priceCFD);
+$('iv').textContent=DATA.iv.toFixed(2)+' ('+(DATA.ivChg>=0?'+':'')+DATA.ivChg+')';
+$('sdmeta').textContent='1SD ~'+DATA.sd1;
+$('pcr').textContent='PCR '+DATA.pcr.toFixed(2);
+const b=DATA.bias;
+$('biasNum').textContent=(b>=0?'+':'')+b;
+$('biasNum').style.color=b>15?'var(--up)':b<-15?'var(--down)':'var(--gold)';
+$('biasLbl').textContent=DATA.biasLabel;
+$('needle').style.left=((b+100)/2)+'%';
+$('sdTable').innerHTML='<tr><th>เส้น</th><th>Futures</th><th>โซน</th></tr>'+
+  DATA.sd.map(r=>{
+    const cls=r[2]==='mid'?'z-mid':'';
+    const dot=r[2]==='mid'?'':'<span class="zdot '+r[2]+'"></span>';
+    const price=r[2]==='mid'?'<span class="price-now">'+fmt(r[1])+'</span>':fmt(r[1]);
+    return '<tr class="'+cls+'"><td>'+r[0]+'</td><td>'+price+'</td><td>'+dot+r[3]+'</td></tr>';
+  }).join('');
+const maxOI=Math.max(...DATA.heat.map(h=>h[2]));
+$('heat').innerHTML=DATA.heat.map(h=>{
+  if(h[1]==='now')
+    return '<div class="hrow"><span class="hk">'+h[0]+'</span>'+
+      '<div class="hcell now" style="background:repeating-linear-gradient(90deg,#2a313a,#2a313a 6px,#222831 6px,#222831 12px);color:var(--gold2)">'+
+      '<span class="htag">◄ ราคาปัจจุบัน</span></div></div>';
+  const intensity=0.25+0.75*(h[2]/maxOI);
+  const col=h[1]==='c'?'rgba(55,192,138,'+intensity+')':'rgba(229,96,72,'+intensity+')';
+  const label=h[1]==='c'?'CALL':'PUT';
+  return '<div class="hrow"><span class="hk">'+h[0]+'</span>'+
+    '<div class="hcell" style="background:'+col+'"><span class="htag">'+label+'</span>'+
+    '<span class="oi">OI '+fmt(h[2])+'</span></div></div>';
+}).join('');
+const hr=new Date().getHours();
+const liveSess=k=>k==='asia'?(hr>=7&&hr<14):k==='london'?(hr>=14&&hr<21):(hr>=19||hr<3);
+$('sessions').innerHTML=DATA.sessions.map(s=>{
+  const on=liveSess(s[2]);
+  return '<div class="scell '+(on?'live':'')+'"><b>'+s[0]+'</b><small>'+s[1]+'</small>'+
+    '<div class="slive">'+(on?'● LIVE':'—')+'</div></div>';
+}).join('');
+$('sessBadge').textContent=(DATA.sessions.find(s=>liveSess(s[2]))||['','—'])[0]+' SESSION';
+$('risk').innerHTML=DATA.risk.map(r=>{
+  const c=r[2]==='pos'?'var(--up)':r[2]==='neg'?'var(--down)':'var(--ink)';
+  return '<div class="stat"><small>'+r[0]+'</small><b style="color:'+c+'">'+r[1]+'</b></div>';
+}).join('');
+// แผนวันนี้
+(function(){
+  const pl=DATA.plan||{};
+  $('planUpd').textContent=pl.updated?('อัปเดต '+pl.updated):'—';
+  $('planBias').textContent=pl.biasText||('Bias '+((DATA.bias>=0?'+':'')+DATA.bias));
+  const icon={long:'▲',short:'▼',watch:'◆'};
+  $('planZones').innerHTML=(pl.zones||[]).map(z=>
+    '<div class="planrow '+(z.type||'watch')+'"><span class="ic">'+(icon[z.type]||'◆')+'</span><div>'+z.text+'</div></div>'
+  ).join('');
+  $('planRules').innerHTML=(pl.rules||[]).map(r=>'<span class="prule">'+r+'</span>').join('');
+})();
+$('log').innerHTML=DATA.log.map(l=>{
+  const c=l[4]==='pos'?'pos':l[4]==='neg'?'neg':'';
+  return '<div class="l"><span>'+l[0]+'</span><b>'+l[1]+'</b><span>'+l[2]+'</span><span class="'+c+'">'+l[3]+'</span></div>';
+}).join('');
+(function(){
+  const d=DATA.equity, W=1000, H=200, pad=8;
+  const min=Math.min(...d), max=Math.max(...d), rng=(max-min)||1;
+  const x=i=>pad+i*(W-2*pad)/(d.length-1);
+  const y=v=>pad+(1-(v-min)/rng)*(H-2*pad);
+  let peak=-Infinity; const dd=d.map(v=>{peak=Math.max(peak,v);return v<peak;});
+  const line=d.map((v,i)=>(i?'L':'M')+x(i).toFixed(1)+' '+y(v).toFixed(1)).join(' ');
+  const area=line+' L'+x(d.length-1)+' '+(H-pad)+' L'+x(0)+' '+(H-pad)+' Z';
+  let bands='', start=null;
+  for(let i=0;i<d.length;i++){
+    if(dd[i]&&start===null)start=i;
+    if((!dd[i]||i===d.length-1)&&start!==null){
+      const a=x(start), bx=x(dd[i]?i:Math.max(start,i-1));
+      bands+='<rect x="'+a.toFixed(1)+'" y="'+pad+'" width="'+(bx-a).toFixed(1)+'" height="'+(H-2*pad)+'" fill="rgba(229,96,72,.10)"/>';
+      start=null;
+    }
+  }
+  const last=d[d.length-1], up=last>=d[0];
+  const stroke=up?'var(--up)':'var(--down)';
+  $('chart').innerHTML='<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none">'+
+    '<defs><linearGradient id="gArea" x1="0" y1="0" x2="0" y2="1">'+
+    '<stop offset="0" stop-color="'+(up?'rgba(55,192,138,.22)':'rgba(229,96,72,.22)')+'"/>'+
+    '<stop offset="1" stop-color="rgba(0,0,0,0)"/></linearGradient></defs>'+
+    bands+
+    '<path d="'+area+'" fill="url(#gArea)"/>'+
+    '<path d="'+line+'" fill="none" stroke="'+stroke+'" stroke-width="2.2" stroke-linejoin="round"/>'+
+    '<circle cx="'+x(d.length-1).toFixed(1)+'" cy="'+y(last).toFixed(1)+'" r="3.5" fill="'+stroke+'"/>'+
+    '</svg>';
+  $('mBal').textContent='$'+fmt(DATA.balance);
+  $('mEq').textContent='$'+fmt(DATA.equityNow);
+  $('mDD').textContent=DATA.maxDD;
+  $('mPL').textContent=(DATA.plToday>=0?'+$':'-$')+fmt(Math.abs(DATA.plToday));
+  $('mPL').style.color=DATA.plToday>=0?'var(--up)':'var(--down)';
+})();
+}
+
+renderAll();
+loadLive();
+setInterval(loadLive, 60000); // refresh ทุก 60 วิ
+setInterval(()=>{ $('clock').textContent=new Date().toLocaleTimeString('th-TH'); },1000);
+</script>
+</body>
+</html>
