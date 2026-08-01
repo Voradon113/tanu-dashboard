@@ -137,97 +137,16 @@ function buildFlowMessage_(price, callWalls, putWalls){
   return L.join('\n');
 }
 
-/* ---------- 5) ขนาดไม้ตามความผันผวน ---------- */
-
-const RISK = {
-  RISK_PCT   : 1.0,    // % ของพอร์ตที่ยอมเสียต่อไม้
-  SL_FACTOR  : 0.5,    // SL = 0.5 × 1SD  (ปรับได้ 0.4-0.6)
-  DAILY_STOP : 3.0,    // ขาดทุนถึง % นี้ = หยุดวัน
-  CFD_PER_PT : 100,    // XAUUSD CFD: 1.00 lot = $100 ต่อจุด
-  MGC_PER_PT : 10,     // MGC futures: 1 สัญญา = $10 ต่อจุด
-  LOT_MIN    : 0.01,
-  LOT_STEP   : 0.01,
-  LOT_MAX    : 2.00,
-};
-
-/**
- * ล็อกที่ "เงินที่ยอมเสีย" ไม่ใช่ล็อกที่ lot
- * วันเหวี่ยงแรง SL กว้างขึ้น -> lot เล็กลงเอง -> เงินเสี่ยงเท่าเดิมทุกวัน
- *
- * ⚠️ ใช้ sd1 ที่ตรึงไว้ตอนตี 5 ไม่ใช่ค่าสดที่หดลงระหว่างวัน
- *    ถ้าใช้ค่าสด lot จะโตขึ้นเองตอนดึก ซึ่งกลับหัวกับความจริง
- *    (ช่วงท้ายวันเหวี่ยงแรงกว่า ไม่ใช่เบากว่า)
- */
-function calcLot_(equity){
-  const s = getSd1_();
-  if (!s || !equity) return null;
-
-  const sl   = round1_(s * RISK.SL_FACTOR);
-  const risk = equity * RISK.RISK_PCT / 100;
-
-  // ปัดลงเสมอ — เสี่ยงน้อยกว่าที่ตั้งใจดีกว่าเกิน
-  const raw  = risk / (sl * RISK.CFD_PER_PT);
-  let   lot  = Math.floor(raw / RISK.LOT_STEP) * RISK.LOT_STEP;
-  let   note = '';
-
-  if (lot > RISK.LOT_MAX){ lot = RISK.LOT_MAX; note = 'ชนเพดาน'; }
-  if (lot < RISK.LOT_MIN){
-    lot  = RISK.LOT_MIN;
-    note = 'ต่ำกว่าไม้ขั้นต่ำ — เสี่ยงจริงเกินที่ตั้งไว้';
-  }
-
-  lot = Math.round(lot * 100) / 100;
-
-  // MGC ปัดลงตรงๆ — ถ้าได้ 0 แปลว่าพอร์ตเล็กเกินกว่าจะเทรด MGC ที่ SL นี้
-  // อย่าดันขึ้นเป็น 1 สัญญา เพราะนั่นคือการเสี่ยงเกินที่ตั้งใจแบบเงียบๆ
-  const mgc = Math.floor(risk / (sl * RISK.MGC_PER_PT));
-
-  return {
-    sd1  : s,
-    sl   : sl,
-    lot  : lot,
-    mgc  : mgc,
-    risk : Math.round(risk),
-    // เสี่ยงจริงหลังปัด — ต่างจากที่ตั้งใจได้ ต้องโชว์ค่านี้ ไม่ใช่ค่าที่ตั้งใจ
-    real : Math.round(lot * sl * RISK.CFD_PER_PT),
-    note : note,
-  };
-}
-
-/** เบรกเกอร์รายวัน — เสียถึงเพดานแล้วต้องหยุด ไม่ใช่ไล่คืน */
-function dailyStopHit_(equity, plToday){
-  if (!equity || plToday == null) return false;
-  return (plToday / equity * 100) <= -RISK.DAILY_STOP;
-}
-
-function buildRiskLine_(equity, plToday){
-  const r = calcLot_(equity);
-  if (!r) return '📏 ยังคำนวณไม่ได้ — ไม่มี sd1';
-
-  const L = ['📏 1SD ' + round1_(r.sd1) + ' · SL ' + r.sl + ' จุด'
-           + ' · lot ' + r.lot.toFixed(2)
-           + (r.mgc > 0 ? ' (MGC ' + r.mgc + ')' : '')
-           + ' · เสี่ยง $' + r.real];
-  if (r.note)     L.push('   ⚠️ ' + r.note);
-  if (!r.mgc)     L.push('   ℹ️ MGC ไม่ไหวที่ SL นี้ — ใช้ CFD แทน');
-  if (dailyStopHit_(equity, plToday)){
-    L.push('🛑 ถึงเพดานขาดทุนวันนี้ (' + RISK.DAILY_STOP + '%) — ปิดจอ พรุ่งนี้ค่อยว่ากัน');
-  }
-  return L.join('\n');
-}
-
-/* ---------- 6) payload ให้จอ ---------- */
+/* ---------- 5) payload ให้จอ ---------- */
 
 /** จอจะได้ anchor/sd1/contract ครบ ไม่ต้องคำนวณ SD เองอีก */
 function buildDashboardPayload_(){
-  const equity = Number(getKey_('equity')) || null;
   return {
     updated  : Utilities.formatDate(new Date(), CFG.TZ, 'yyyy-MM-dd HH:mm'),
     contract : CFG.CONTRACT,
     anchor   : getAnchor_(),
     sd1      : getSd1_(),
     anchorTime: getKey_('anchorTime'),
-    risk     : equity ? calcLot_(equity) : null,
   };
 }
 
