@@ -1,0 +1,439 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="เช็คก่อนเข้าไม้">
+<meta name="theme-color" content="#E9E6DF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#10151B" media="(prefers-color-scheme: dark)">
+<title>การ์ดเช็คก่อนเข้าไม้ · ทอง</title>
+<style>
+:root{
+  --paper:#E9E6DF; --card:#F4F2ED; --ink:#1B222A; --ink-2:#5A6672; --ink-3:#8B95A0;
+  --rule:#CFCAC0; --brass:#9A6E2A; --brass-soft:#E8DCC2;
+  --stop:#B23F35; --stop-bg:#F6E3E0; --go:#3F7351; --go-bg:#E0EDE3;
+  --shadow:0 1px 0 rgba(27,34,42,.06), 0 8px 24px -18px rgba(27,34,42,.5);
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#10151B; --card:#181F27; --ink:#E4E2DC; --ink-2:#9BA6B2; --ink-3:#6B7683;
+    --rule:#2A343F; --brass:#C9974A; --brass-soft:#2E2718;
+    --stop:#D96054; --stop-bg:#2C1A18; --go:#63A87A; --go-bg:#152219;
+    --shadow:0 1px 0 rgba(0,0,0,.4), 0 8px 24px -18px #000;
+  }
+}
+:root[data-theme="light"]{
+  --paper:#E9E6DF; --card:#F4F2ED; --ink:#1B222A; --ink-2:#5A6672; --ink-3:#8B95A0;
+  --rule:#CFCAC0; --brass:#9A6E2A; --brass-soft:#E8DCC2;
+  --stop:#B23F35; --stop-bg:#F6E3E0; --go:#3F7351; --go-bg:#E0EDE3;
+  --shadow:0 1px 0 rgba(27,34,42,.06), 0 8px 24px -18px rgba(27,34,42,.5);
+}
+:root[data-theme="dark"]{
+  --paper:#10151B; --card:#181F27; --ink:#E4E2DC; --ink-2:#9BA6B2; --ink-3:#6B7683;
+  --rule:#2A343F; --brass:#C9974A; --brass-soft:#2E2718;
+  --stop:#D96054; --stop-bg:#2C1A18; --go:#63A87A; --go-bg:#152219;
+  --shadow:0 1px 0 rgba(0,0,0,.4), 0 8px 24px -18px #000;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"Sukhumvit Set","Noto Sans Thai",Thonburi,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-size:16px; line-height:1.65; -webkit-text-size-adjust:100%;
+}
+.mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-variant-numeric:tabular-nums}
+.wrap{max-width:52rem; margin:0 auto; padding:1.4rem 1.1rem 6rem; display:flex; flex-direction:column; gap:1.05rem}
+
+header{display:flex; flex-direction:column; gap:.35rem; padding-bottom:.85rem; border-bottom:2px solid var(--ink)}
+.eyebrow{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-size:.7rem; letter-spacing:.16em; text-transform:uppercase; color:var(--brass); font-weight:600}
+h1{margin:0; font-size:1.45rem; line-height:1.25; font-weight:700; text-wrap:balance; letter-spacing:-.01em}
+.sub{margin:0; color:var(--ink-2); font-size:.88rem}
+
+/* ---- mode switch ---- */
+.modes{display:grid; grid-template-columns:1fr 1fr; gap:.4rem; background:var(--rule); padding:.22rem; border-radius:3px}
+.modes button{
+  padding:.55rem .5rem; border:0; border-radius:2px; cursor:pointer; background:transparent;
+  color:var(--ink-2); font-family:inherit; font-size:.86rem; font-weight:600; letter-spacing:0; text-transform:none;
+  display:flex; flex-direction:column; align-items:center; gap:.05rem; line-height:1.3;
+}
+.modes button small{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-size:.62rem; letter-spacing:.1em; text-transform:uppercase; font-weight:400; opacity:.75}
+.modes button[aria-pressed="true"]{background:var(--card); color:var(--ink); box-shadow:var(--shadow)}
+.modes button:focus-visible{outline:2px solid var(--brass); outline-offset:-2px}
+
+.card{background:var(--card); border:1px solid var(--rule); border-radius:3px; box-shadow:var(--shadow); overflow:hidden}
+.card-head{display:flex; align-items:center; gap:.7rem; padding:.8rem 1rem; border-bottom:1px solid var(--rule)}
+.num{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-size:.78rem; font-weight:700; color:var(--paper); background:var(--ink); border-radius:2px; min-width:1.55rem; height:1.55rem; display:grid; place-items:center; flex:none}
+.card-title{font-weight:700; font-size:1.02rem; letter-spacing:-.01em}
+.card-what{margin-inline-start:auto; font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-size:.67rem; letter-spacing:.13em; text-transform:uppercase; color:var(--brass); white-space:nowrap}
+.card-body{padding:.35rem 1rem 1rem}
+
+ul{list-style:none; margin:0; padding:0; display:flex; flex-direction:column}
+li{border-bottom:1px dotted var(--rule)}
+li:last-child{border-bottom:0}
+label.row{display:grid; grid-template-columns:1.4rem 1fr; gap:.7rem; align-items:start; padding:.6rem 0; cursor:pointer}
+input[type=checkbox]{
+  appearance:none; -webkit-appearance:none; margin:0; margin-top:.2rem;
+  width:1.15rem; height:1.15rem; border:1.5px solid var(--ink-3); border-radius:2px;
+  background:transparent; cursor:pointer; flex:none; display:grid; place-items:center;
+  transition:background .12s ease, border-color .12s ease;
+}
+input[type=checkbox]::after{content:""; width:.34rem; height:.62rem; border:solid var(--card); border-width:0 2px 2px 0; transform:rotate(45deg) scale(0); margin-top:-.12rem; transition:transform .12s ease}
+input[type=checkbox]:checked{background:var(--go); border-color:var(--go)}
+input[type=checkbox]:checked::after{transform:rotate(45deg) scale(1)}
+input[type=checkbox]:focus-visible{outline:2px solid var(--brass); outline-offset:2px}
+.stop input[type=checkbox]:checked{background:var(--stop); border-color:var(--stop)}
+.txt{font-size:.92rem; line-height:1.5}
+.note{display:block; color:var(--ink-2); font-size:.78rem; margin-top:.1rem}
+input:checked ~ .txt > .lead{color:var(--ink-3); text-decoration:line-through}
+.stop input:checked ~ .txt > .lead{color:var(--stop); text-decoration:none; font-weight:600}
+
+.gate0{border-color:var(--stop); background:var(--stop-bg)}
+.gate0 .num{background:var(--stop); color:#fff}
+.gate0 li{border-bottom-color:color-mix(in srgb, var(--stop) 22%, transparent)}
+
+.card[data-locked="1"]{opacity:.4}
+.card[data-locked="1"] .card-body{pointer-events:none}
+.lockmsg{display:none; font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-size:.68rem; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3); padding:.5rem 1rem; border-top:1px dotted var(--rule)}
+.card[data-locked="1"] .lockmsg{display:block}
+
+/* ---- fields ---- */
+.grid2{display:grid; grid-template-columns:1fr 1fr; gap:.5rem .8rem; padding:.7rem 0 .2rem}
+.f{display:flex; flex-direction:column; gap:.2rem; min-width:0}
+.f span{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-size:.65rem; letter-spacing:.11em; text-transform:uppercase; color:var(--ink-2)}
+.f input, .f select{
+  width:100%; padding:.42rem .55rem; border:1px solid var(--rule); border-radius:2px;
+  background:var(--paper); color:var(--ink); font-size:.94rem;
+  font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-variant-numeric:tabular-nums;
+}
+.f input:focus-visible, .f select:focus-visible{outline:2px solid var(--brass); outline-offset:1px}
+.out{grid-column:1/-1; display:flex; align-items:baseline; justify-content:space-between; gap:.6rem; background:var(--brass-soft); border-radius:2px; padding:.48rem .65rem}
+.out b{font-size:1.2rem; font-weight:700}
+.out em{font-style:normal; font-size:.75rem; color:var(--ink-2)}
+
+/* ---- armed zone ---- */
+.zone{border:1px solid var(--rule); border-radius:3px; padding:.55rem .7rem; margin-top:.5rem; background:var(--paper)}
+.zone .grid2{padding:.2rem 0 0}
+.zline{display:flex; align-items:baseline; gap:.5rem; flex-wrap:wrap; font-size:.8rem; color:var(--ink-2)}
+.zline b{color:var(--ink); font-size:1.05rem}
+.badge{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-size:.68rem; letter-spacing:.06em; padding:.1rem .4rem; border-radius:2px; background:var(--brass-soft); color:var(--brass); font-weight:600}
+.badge[data-bad="1"]{background:var(--stop-bg); color:var(--stop)}
+.badge[data-good="1"]{background:var(--go-bg); color:var(--go)}
+
+/* ---- live card (trigger mode) ---- */
+.live{border-width:2px; border-color:var(--brass)}
+.live .card-head{background:var(--brass-soft)}
+.live .num{background:var(--brass); color:#fff}
+.plan{padding:.8rem 1rem; border-bottom:1px dotted var(--rule); display:flex; flex-direction:column; gap:.5rem}
+.plan .empty{color:var(--ink-3); font-size:.86rem}
+.prow{display:flex; align-items:baseline; gap:.6rem; flex-wrap:wrap; padding:.45rem .6rem; border:1px solid var(--rule); border-radius:2px; background:var(--paper)}
+.prow .k{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-size:.65rem; letter-spacing:.11em; text-transform:uppercase; color:var(--ink-2); width:100%}
+.prow .big{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-size:1.28rem; font-weight:700; font-variant-numeric:tabular-nums}
+.prow .sm{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-size:.84rem; color:var(--ink-2); font-variant-numeric:tabular-nums}
+
+.logline{background:var(--ink); color:var(--paper); border-radius:2px; padding:.65rem .75rem; font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-size:.8rem; overflow-x:auto; white-space:nowrap; margin-top:.45rem}
+.hint{font-size:.8rem; color:var(--ink-2); padding:.55rem 1rem .1rem; line-height:1.55}
+
+.verdict{position:fixed; left:0; right:0; bottom:0; z-index:20; border-top:2px solid var(--ink); background:var(--card); padding:.65rem 1.1rem calc(.65rem + env(safe-area-inset-bottom))}
+.vinner{max-width:52rem; margin:0 auto; display:flex; align-items:center; gap:.8rem}
+.vdot{width:.7rem; height:.7rem; border-radius:50%; background:var(--stop); flex:none}
+.vtext{font-weight:700; font-size:.94rem; line-height:1.35}
+.vtext small{display:block; font-weight:400; font-size:.75rem; color:var(--ink-2)}
+.verdict button{margin-inline-start:auto; flex:none; padding:.4rem .75rem; cursor:pointer; background:transparent; color:var(--ink-2); border:1px solid var(--rule); border-radius:2px; font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-size:.7rem; letter-spacing:.1em; text-transform:uppercase}
+.verdict button:hover{color:var(--ink); border-color:var(--ink-3)}
+.verdict button:focus-visible{outline:2px solid var(--brass); outline-offset:2px}
+.verdict[data-ok="1"]{background:var(--go-bg); border-top-color:var(--go)}
+.verdict[data-ok="1"] .vdot{background:var(--go)}
+.verdict[data-stop="1"]{background:var(--stop-bg); border-top-color:var(--stop)}
+
+footer{color:var(--ink-3); font-size:.77rem; text-align:center; padding-top:.3rem; line-height:1.75}
+[hidden]{display:none !important}
+@media (prefers-reduced-motion:reduce){*{transition:none !important}}
+@media (max-width:26rem){.grid2{grid-template-columns:1fr}}
+</style>
+
+</head><body><div class="wrap">
+
+<header>
+  <div class="eyebrow">Pre-Trade Gate · XAUUSD</div>
+  <h1>การ์ดเช็คก่อนเข้าไม้</h1>
+  <p class="sub">17 ข้อทำตอนเช้า · หน้างานเหลือ 3 ข้อ — ที่ไล่ไม่ทันคือเพราะเช็คผิดเวลา ไม่ใช่เพราะเช็คเยอะ</p>
+</header>
+
+<div class="modes" role="group" aria-label="โหมด">
+  <button id="mPrep" aria-pressed="true">เตรียม<small>17 ข้อ · ไม่มีใครไล่</small></button>
+  <button id="mLive" aria-pressed="false">หน้างาน<small>3 ข้อ · 30 วินาที</small></button>
+</div>
+
+<!-- ============ PREP ============ -->
+<div id="prep">
+
+<section class="card gate0">
+  <div class="card-head"><span class="num">✕</span><span class="card-title">ติดข้อไหน ปิดจอ</span><span class="card-what">ก่อนอื่น</span></div>
+  <div class="card-body"><ul>
+    <li class="stop"><label class="row"><input type="checkbox" data-stop><span class="txt"><span class="lead">วันนี้แดงครบ 2 ไม้แล้ว</span><span class="note">ไม้ที่ 3 ในวันแดงคือไม้เอาคืน ไม่ใช่ไม้ที่มีเซ็ตอัป</span></span></label></li>
+    <li class="stop"><label class="row"><input type="checkbox" data-stop><span class="txt"><span class="lead">อยู่นอกหน้าต่างเวลา</span><span class="note">จ·พ·ศ ก่อน 08:30 · อ·พฤ หลัง 18:00 · ส·อา ไม่เล่น</span></span></label></li>
+    <li class="stop"><label class="row"><input type="checkbox" data-stop><span class="txt"><span class="lead">ไม้ก่อนหน้ายังไม่ได้จด</span><span class="note">จดให้จบก่อน แล้วค่อยเปิดไม้ใหม่</span></span></label></li>
+    <li class="stop"><label class="row"><input type="checkbox" data-stop><span class="txt"><span class="lead">อยู่ใน ±15 นาที รอบข่าวแรง</span><span class="note">สเปรดกว้าง สลิปหนัก SL ไม่ทำงานตามที่ตั้ง</span></span></label></li>
+    <li class="stop"><label class="row"><input type="checkbox" data-stop><span class="txt"><span class="lead">นอนไม่พอ / กำลังหัวเสีย</span><span class="note">สมองส่วนที่ยับยั้งดับก่อนเพื่อน — วันแบบนี้ไม่ใช่วันที่ควรเทรด</span></span></label></li>
+  </ul></div>
+</section>
+
+<section class="card" id="s1">
+  <div class="card-head"><span class="num">1</span><span class="card-title">QuikStrike</span><span class="card-what">ที่ไหน</span></div>
+  <div class="card-body">
+    <ul>
+      <li><label class="row"><input type="checkbox" data-need="1"><span class="txt"><span class="lead">รู้ว่าดูสัญญาไหน + เหลือกี่ชั่วโมง</span><span class="note">G1WQ6 รายสัปดาห์ · GCV6 ตัวใหญ่ — ห้ามปนกัน</span></span></label></li>
+      <li><label class="row"><input type="checkbox" data-need="1"><span class="txt"><span class="lead">เช็คว่าข้อมูลสดจริง</span><span class="note">OI Change รวม ต้องไม่เกิน Volume รวม · เกิน = ข้อมูลเซสชันที่ปิดไปแล้ว</span></span></label></li>
+      <li><label class="row"><input type="checkbox" data-need="1"><span class="txt"><span class="lead">จด anchor + 1SD ของเช้านี้</span><span class="note">ตรึงตอนเช้าครั้งเดียว — คำนวณใหม่ระหว่างวัน เส้นจะวิ่งหนีราคาอีก</span></span></label></li>
+      <li><label class="row"><input type="checkbox" data-need="1"><span class="txt"><span class="lead">มาร์กกำแพง call / put ที่ใกล้ที่สุด</span><span class="note">เอาเฉพาะในระยะ ±5% · ไกลกว่านั้นคือคนซื้อหวย ไม่ใช่ฝากั้น</span></span></label></li>
+      <li><label class="row"><input type="checkbox" data-need="1"><span class="txt"><span class="lead">JANIE เอนทางไหน · ซ้ำกี่ช็อตแล้ว</span><span class="note">ซ้ำทาง 2 ช็อตติด = ห้ามถือไม้ยาวสวน · ไม้สั้นยังทำได้</span></span></label></li>
+      <li><label class="row"><input type="checkbox" data-need="1"><span class="txt"><span class="lead">แปลงทุกเลขเป็นราคา CFD แล้ว</span><span class="note">ใช้ช่องข้างล่าง — อย่าคิดในหัว วันที่เหนื่อยจะลบผิด</span></span></label></li>
+    </ul>
+    <div class="grid2">
+      <label class="f"><span>ราคาฟิวเจอร์ส</span><input type="text" id="fut" inputmode="decimal" placeholder="4278"></label>
+      <label class="f"><span>Basis ของสัญญานั้น</span><input type="text" id="bas" inputmode="decimal" placeholder="32.7"></label>
+      <div class="out"><b class="mono" id="cfd">— — —</b><em id="hint">GCV6 กับ GCZ6 คนละ basis · วัดพร้อมกันตอนตลาดเปิดเท่านั้น</em></div>
+    </div>
+  </div>
+  <div class="lockmsg">ปลดล็อกเมื่อไม่มีข้อ ✕ ติดอยู่</div>
+</section>
+
+<section class="card" id="s2">
+  <div class="card-head"><span class="num">2</span><span class="card-title">ATAS</span><span class="card-what">ใครอยู่ตรงนั้น</span></div>
+  <div class="card-body"><ul>
+    <li><label class="row"><input type="checkbox" data-need="2"><span class="txt"><span class="lead">BigTrade กระจุกที่โซนจากด่าน 1 ไหม</span><span class="note">ต้อง ≥4 ดีล ใน 2 จุด ภายใน 45 นาที · ดีลเดี่ยวคือ noise</span></span></label></li>
+    <li><label class="row"><input type="checkbox" data-need="2"><span class="txt"><span class="lead">UB — มีงานค้างเหลือไว้ตรงไหน</span><span class="note">ราคามักกลับไปเก็บ · ถ้า UB อยู่ตรงข้ามทิศที่จะเข้า ระวัง</span></span></label></li>
+    <li><label class="row"><input type="checkbox" data-need="2"><span class="txt"><span class="lead">LQ กองอยู่ฝั่งไหน</span><span class="note">ของกองข้างบน = ราคามีเหตุผลจะขึ้นไปกวาดก่อนลง</span></span></label></li>
+    <li><label class="row"><input type="checkbox" data-need="2"><span class="txt"><span class="lead">Orderbook — ของที่วางอยู่จริงหรือถอน</span><span class="note">ของหายตอนราคาเข้าใกล้ = ปลอม ไม่ใช่แนวรับ</span></span></label></li>
+    <li><label class="row"><input type="checkbox" data-need="2"><span class="txt"><span class="lead">อย่างน้อย 1 โซนจากด่าน 1 มีเงินจริงยืนอยู่</span><span class="note">ไม่มีเลย = วันนี้ไม่มีโซนให้ตั้ง กลับบ้านได้</span></span></label></li>
+  </ul></div>
+  <div class="lockmsg">ปลดล็อกเมื่อด่าน 1 ครบ</div>
+</section>
+
+<section class="card" id="s4">
+  <div class="card-head"><span class="num">◈</span><span class="card-title">ตั้งโซนที่จะเฝ้า</span><span class="card-what">ผลลัพธ์ของงานเช้า</span></div>
+  <div class="hint">กรอกไว้ตอนนี้ตอนหัวเย็น — พอราคามาถึง พี่จะได้ไม่ต้องคิดเลข แค่ดูว่าเกิด M/W กับ BOS ไหม</div>
+  <div class="card-body">
+    <div class="zone">
+      <div class="grid2">
+        <label class="f"><span>ทิศ</span><select id="z1side"><option value="SELL">ขาย</option><option value="BUY">ซื้อ</option></select></label>
+        <label class="f"><span>โซนเข้า (CFD)</span><input type="text" id="z1e" inputmode="decimal" placeholder="4171"></label>
+        <label class="f"><span>SL</span><input type="text" id="z1s" inputmode="decimal" placeholder="4180"></label>
+        <label class="f"><span>TP</span><input type="text" id="z1t" inputmode="decimal" placeholder="4149"></label>
+        <label class="f" style="grid-column:1/-1"><span>เหตุผล 1 บรรทัด</span><input type="text" id="z1n" placeholder="50-61.8 + BigTrade 4154 + กำแพง PUT"></label>
+      </div>
+      <div class="zline" id="z1out" style="margin-top:.5rem"><span class="badge">ยังไม่ได้ตั้ง</span></div>
+    </div>
+    <div class="zone">
+      <div class="grid2">
+        <label class="f"><span>ทิศ</span><select id="z2side"><option value="SELL">ขาย</option><option value="BUY">ซื้อ</option></select></label>
+        <label class="f"><span>โซนเข้า (CFD)</span><input type="text" id="z2e" inputmode="decimal" placeholder="—"></label>
+        <label class="f"><span>SL</span><input type="text" id="z2s" inputmode="decimal" placeholder="—"></label>
+        <label class="f"><span>TP</span><input type="text" id="z2t" inputmode="decimal" placeholder="—"></label>
+        <label class="f" style="grid-column:1/-1"><span>เหตุผล 1 บรรทัด</span><input type="text" id="z2n" placeholder="—"></label>
+      </div>
+      <div class="zline" id="z2out" style="margin-top:.5rem"><span class="badge">ยังไม่ได้ตั้ง</span></div>
+    </div>
+    <ul style="margin-top:.6rem">
+      <li><label class="row"><input type="checkbox" data-need="4"><span class="txt"><span class="lead">ตั้งอเลิร์ตราคาใน MT5 ที่โซนแล้ว</span><span class="note">ตั้งห่างโซน 5 จุด — ให้เตือนตอน “กำลังมา” ไม่ใช่ตอน “มาถึง”</span></span></label></li>
+      <li><label class="row"><input type="checkbox" data-need="4"><span class="txt"><span class="lead">ไซซ์คำนวณไว้แล้วจาก 1% ของทุน</span><span class="note">SL แคบลง = ใส่ได้มากขึ้น โดยเสี่ยงเป็นบาทเท่าเดิม</span></span></label></li>
+    </ul>
+  </div>
+  <div class="lockmsg">ปลดล็อกเมื่อด่าน 2 ครบ</div>
+</section>
+
+</div>
+
+<!-- ============ LIVE ============ -->
+<div id="live" hidden>
+
+<section class="card live">
+  <div class="card-head"><span class="num">◈</span><span class="card-title">แผนที่ตั้งไว้เช้านี้</span><span class="card-what">อ่านอย่างเดียว</span></div>
+  <div class="plan" id="planOut"><span class="empty">ยังไม่ได้ตั้งโซน — กลับไปโหมด “เตรียม” ก่อน</span></div>
+</section>
+
+<section class="card" id="s3">
+  <div class="card-head"><span class="num">3</span><span class="card-title">W &amp; M</span><span class="card-what">เมื่อไหร่</span></div>
+  <div class="card-body"><ul>
+    <li><label class="row"><input type="checkbox" data-need="3"><span class="txt"><span class="lead">ราคาเข้าโซนแล้ว + ขาก่อนหน้า ≥ 12 จุด</span><span class="note">ลากฟีโบบน M5 · ค่อยๆ ไต่ไม่นับ</span></span></label></li>
+    <li><label class="row"><input type="checkbox" data-need="3"><span class="txt"><span class="lead">เกิด M (จะขาย) หรือ W (จะซื้อ) บน M1</span><span class="note">ยิ่งดีถ้าก่อนหน้าทำ V เก็บสตอปแล้วไปต่อไม่ไหว</span></span></label></li>
+    <li><label class="row"><input type="checkbox" data-need="3"><span class="txt"><span class="lead">BOS หลุดคอแล้ว</span><span class="note">ขาดข้อนี้ = ไม่มีไม้ ต่อให้ทุกอย่างสวยแค่ไหน</span></span></label></li>
+  </ul>
+  <div class="logline" id="logOut">/log …</div>
+  </div>
+</section>
+
+<div class="hint" style="padding-inline:0">
+  เข้าแล้ว — ห้ามเติมไม้ · ห้ามขยับ SL ออก · ห้ามเข้าซ้ำถ้าโดน SL<br>
+  +1R ปิดครึ่ง แล้วเลื่อน SL มาทุน
+</div>
+
+</div>
+
+<footer>แม่น 2 ไม้ ชนะสาด 10 ไม้ 🥷</footer>
+</div>
+
+<div class="verdict" id="v">
+  <div class="vinner">
+    <span class="vdot"></span>
+    <span class="vtext" id="vt">ยังไม่ครบ<small id="vs">เริ่มที่ด่าน 1</small></span>
+    <button id="reset">เริ่มใหม่</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var stops = [].slice.call(document.querySelectorAll('[data-stop]'));
+  var v = $('v'), vt = $('vt'), vs = $('vs');
+  var mode = 'prep';
+
+  function boxes(n){ return [].slice.call(document.querySelectorAll('[data-need="'+n+'"]')); }
+  function left(n){ return boxes(n).filter(function(b){ return !b.checked; }).length; }
+  function num(el){ var x = parseFloat(String($(el).value).replace(/,/g,'')); return isNaN(x) ? null : x; }
+
+  /* ---- โซน ---- */
+  function zone(p){
+    var e = num(p+'e'), s = num(p+'s'), t = num(p+'t');
+    var side = $(p+'side').value, note = $(p+'n').value.trim();
+    if (e === null || s === null) return null;
+    var risk = Math.abs(e - s);
+    var rr   = (t === null || !risk) ? null : Math.abs(t - e) / risk;
+    // ทิศต้องสมเหตุผล — SL ของไม้ขายต้องอยู่เหนือจุดเข้า ไม่งั้นคือกรอกสลับ
+    var sane = side === 'SELL' ? s > e : s < e;
+    return {side:side, e:e, sl:s, tp:t, note:note, risk:Math.round(risk*10)/10,
+            rr:rr === null ? null : Math.round(rr*10)/10, sane:sane};
+  }
+
+  function zoneLine(p){
+    var z = zone(p), box = $(p+'out');
+    if (!z){ box.innerHTML = '<span class="badge">ยังไม่ได้ตั้ง</span>'; return null; }
+    var h = [];
+    h.push('<b class="mono">' + (z.side==='SELL'?'🔴 ขาย ':'🟢 ซื้อ ') + z.e.toLocaleString() + '</b>');
+    h.push('<span class="mono">SL ' + z.sl.toLocaleString() + (z.tp!==null?' · TP '+z.tp.toLocaleString():'') + '</span>');
+    if (!z.sane)                 h.push('<span class="badge" data-bad="1">SL ผิดฝั่ง</span>');
+    else if (z.risk < 2.5)       h.push('<span class="badge" data-bad="1">SL แคบไป ' + z.risk + ' — สเปรดกิน</span>');
+    else if (z.risk > 15)        h.push('<span class="badge" data-bad="1">SL กว้างไป ' + z.risk + ' — มาสาย</span>');
+    else                         h.push('<span class="badge" data-good="1">เสี่ยง ' + z.risk + ' จุด</span>');
+    if (z.rr !== null){
+      h.push('<span class="badge"' + (z.rr < 1.5 ? ' data-bad="1"' : ' data-good="1"') + '>R:R 1 : ' + z.rr + '</span>');
+    }
+    box.innerHTML = h.join(' ');
+    return z;
+  }
+
+  function renderPlan(){
+    var out = $('planOut'), rows = [];
+    ['z1','z2'].forEach(function(p){
+      var z = zoneLine(p);
+      if (!z) return;
+      var ok = z.sane && z.risk >= 2.5 && z.risk <= 15 && (z.rr === null || z.rr >= 1.5);
+      rows.push(
+        '<div class="prow">' +
+          '<span class="k">' + (z.side==='SELL'?'ขาย':'ซื้อ') + (z.note ? ' · ' + esc(z.note) : '') + '</span>' +
+          '<span class="big">' + z.e.toLocaleString() + '</span>' +
+          '<span class="sm">SL ' + z.sl.toLocaleString() + (z.tp!==null?'　TP '+z.tp.toLocaleString():'') + '</span>' +
+          '<span class="badge"' + (ok?' data-good="1"':' data-bad="1"') + '>' + z.risk + ' จุด' + (z.rr!==null?' · 1:'+z.rr:'') + '</span>' +
+        '</div>');
+    });
+    out.innerHTML = rows.length ? rows.join('') :
+      '<span class="empty">ยังไม่ได้ตั้งโซน — กลับไปโหมด “เตรียม” ก่อน</span>';
+
+    var z = zone('z1');
+    $('logOut').textContent = z
+      ? '/log ' + (z.side==='SELL'?'ขาย':'ซื้อ') + ' ' + z.e + ' sl ' + z.sl + (z.tp!==null?' tp '+z.tp:'') + (z.note?' '+z.note:'')
+      : '/log …';
+  }
+
+  function esc(s){ return String(s).replace(/[<>&]/g, function(c){ return {'<':'&lt;','>':'&gt;','&':'&amp;'}[c]; }); }
+
+  /* ---- verdict ---- */
+  function paint(){
+    var blocked = stops.filter(function(b){ return b.checked; }).length;
+    var open = !blocked;
+    [1,2,4].forEach(function(n){
+      var card = $(n===4 ? 's4' : 's'+n);
+      card.dataset.locked = open ? '0' : '1';
+      if (open && left(n) > 0) open = false;
+    });
+
+    v.dataset.stop = blocked ? '1' : '0';
+    v.dataset.ok = '0';
+
+    if (blocked){
+      vt.childNodes[0].nodeValue = 'วันนี้ไม่เทรด';
+      vs.textContent = 'ติดข้อ ✕ อยู่ ' + blocked + ' ข้อ — ปิดจอ ไม่ใช่ลดไซซ์';
+      return;
+    }
+
+    if (mode === 'live'){
+      var k3 = left(3);
+      if (k3){
+        vt.childNodes[0].nodeValue = 'รอสัญญา';
+        vs.textContent = 'เหลืออีก ' + k3 + ' ข้อ — ยังไม่ต้องกด';
+      } else {
+        v.dataset.ok = '1';
+        vt.childNodes[0].nodeValue = 'ครบแล้ว · เข้าได้';
+        vs.textContent = 'กดแล้วพิมพ์ /log ทันที ก่อนดูราคา';
+      }
+      return;
+    }
+
+    var order = [1,2,4];
+    for (var i=0; i<order.length; i++){
+      var k = left(order[i]);
+      if (k){
+        vt.childNodes[0].nodeValue = 'งานเตรียม — ด่าน ' + (order[i]===4 ? '◈' : order[i]);
+        vs.textContent = 'เหลืออีก ' + k + ' ข้อ';
+        return;
+      }
+    }
+    v.dataset.ok = '1';
+    vt.childNodes[0].nodeValue = 'เตรียมครบ · ตั้งอเลิร์ตแล้วเดินได้';
+    vs.textContent = 'พอเด้งเตือน ค่อยสลับไปโหมด “หน้างาน”';
+  }
+
+  /* ---- โหมด ---- */
+  function setMode(m){
+    mode = m;
+    $('prep').hidden = m !== 'prep';
+    $('live').hidden = m !== 'live';
+    $('mPrep').setAttribute('aria-pressed', m === 'prep');
+    $('mLive').setAttribute('aria-pressed', m === 'live');
+    if (m === 'live') renderPlan();
+    paint();
+    window.scrollTo({top:0});
+  }
+  $('mPrep').addEventListener('click', function(){ setMode('prep'); });
+  $('mLive').addEventListener('click', function(){ setMode('live'); });
+
+  /* ---- แปลงราคา ---- */
+  function conv(){
+    var f = num('fut'), b = num('bas');
+    if (f === null || b === null){
+      $('cfd').textContent = '— — —';
+      $('hint').textContent = 'GCV6 กับ GCZ6 คนละ basis · วัดพร้อมกันตอนตลาดเปิดเท่านั้น';
+      return;
+    }
+    $('cfd').textContent = (Math.round((f-b)*10)/10).toLocaleString('en-US',{minimumFractionDigits:1});
+    $('hint').textContent = 'CFD ที่พี่เทรดจริง';
+  }
+
+  document.addEventListener('change', function(e){
+    if (e.target.type === 'checkbox' || e.target.tagName === 'SELECT'){ zoneLine('z1'); zoneLine('z2'); paint(); }
+  });
+  document.addEventListener('input', function(e){
+    if (e.target.tagName !== 'INPUT' || e.target.type === 'checkbox') return;
+    conv(); zoneLine('z1'); zoneLine('z2');
+  });
+
+  $('reset').addEventListener('click', function(){
+    [].slice.call(document.querySelectorAll('input')).forEach(function(b){
+      if (b.type === 'checkbox') b.checked = false; else b.value = '';
+    });
+    conv(); zoneLine('z1'); zoneLine('z2'); setMode('prep');
+  });
+
+  conv(); zoneLine('z1'); zoneLine('z2'); paint();
+})();
+</script>
+
+</body></html>
