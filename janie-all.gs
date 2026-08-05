@@ -1,21 +1,77 @@
 /* ============================================================
    JANIE ALL-IN-ONE — วางไฟล์เดียวจบ
    ------------------------------------------------------------
-   รวม janie-log.gs + janie-bias.gs ไว้ด้วยกัน
-   ตรวจแล้วว่าไม่มีฟังก์ชันชื่อชนกัน วางทับได้เลย
+   ทำงานได้ 2 แบบ:
+     A) วางในโปรเจกต์ JANIE เดิม   → เว้น SHEET_ID ว่างไว้
+     B) วางในโปรเจกต์ใหม่เปล่าๆ     → ต้องใส่ SHEET_ID
 
-   หลังวาง: เลือกฟังก์ชัน installAll แล้วกด Run ครั้งเดียว
+   ชื่อ helper ในไฟล์นี้ขึ้นต้นด้วย j ทั้งหมด (jFmt_ jKey_ jSigned_)
+   จะได้ไม่ทับของเดิมในโปรเจกต์ JANIE
+
+   หลังวาง: เลือกฟังก์ชัน installAll แล้วกด Run
    ============================================================ */
+
+const CORE = {
+  // เว้นว่าง = ใช้ชีตที่ผูกกับสคริปต์นี้
+  // โปรเจกต์ใหม่ที่ไม่ได้ผูกชีต ต้องใส่ ID ตรงนี้
+  // ID คือส่วนกลางของลิงก์ชีต: docs.google.com/spreadsheets/d/<<<ตรงนี้>>>/edit
+  SHEET_ID   : '',
+
+  // เว้นว่างได้ ถ้าโปรเจกต์มี sendTelegram_ อยู่แล้ว
+  BOT_TOKEN  : '',
+  CHAT_ID    : '',
+};
+
+/* ---------- สะพานไปหาของที่อาจมีอยู่แล้วในโปรเจกต์ ---------- */
+
+function ss_(){
+  if (CORE.SHEET_ID) return SpreadsheetApp.openById(CORE.SHEET_ID);
+  const a = SpreadsheetApp.getActive();
+  if (!a) throw new Error('สคริปต์นี้ไม่ได้ผูกกับชีต — ใส่ CORE.SHEET_ID ข้างบนก่อน');
+  return a;
+}
+
+/** ใช้ของเดิมถ้ามี ไม่มีก็ส่งเอง — typeof ไม่พังแม้ตัวแปรไม่เคยประกาศ */
+function tg_(msg){
+  if (typeof sendTelegram_ === 'function'){ sendTelegram_(msg); return; }
+  if (!CORE.BOT_TOKEN || !CORE.CHAT_ID){ Logger.log('[ไม่ได้ส่ง] ' + msg); return; }
+  UrlFetchApp.fetch('https://api.telegram.org/bot' + CORE.BOT_TOKEN + '/sendMessage', {
+    method: 'post',
+    payload: { chat_id: CORE.CHAT_ID, text: msg, parse_mode: 'Markdown' },
+    muteHttpExceptions: true,
+  });
+}
+
+function jKey_(key){
+  const sh = ss_().getSheetByName('input');
+  if (!sh) return null;
+  const rows = sh.getDataRange().getValues();
+  for (var i=0; i<rows.length; i++){
+    if (String(rows[i][0]).trim() === key) return rows[i][1];
+  }
+  return null;
+}
+
+function jFmt_(n){ return Number(n).toLocaleString('en-US', {minimumFractionDigits:0}); }
+function jSigned_(n){ return (Number(n)>=0?'+':'') + n; }
+
+/* ---------- ตัวติดตั้ง ---------- */
 
 function installAll(){
   const out = [];
+  try { ss_(); out.push('✅ ต่อกับชีตได้'); }
+  catch(e){ Logger.log('❌ ' + e.message); return '❌ ' + e.message; }
+
   out.push(installJournal());
   biasSheet_();
   out.push('✅ ชีต "' + BIAS.SHEET + '" พร้อม');
+
   const msg = out.join('\n');
   Logger.log(msg);
   return msg;
 }
+
+
 
 
 const LOG = {
@@ -126,8 +182,8 @@ function cmdLog_(text){
   // ไม้ที่ 3 หลังแดง 2 — ยังจดให้ แต่ติดธงไว้ ให้ /stats มันฟ้องเองตอนสิ้นสัปดาห์
   const broke = stat.losses >= LOG.MAX_LOSS_DAY;
 
-  const anchor = num_(getKey_('anchor'));
-  const sd1    = num_(getKey_('sd1'));
+  const anchor = num_(jKey_('anchor'));
+  const sd1    = num_(jKey_('sd1'));
   const dist   = (anchor && sd1) ? Math.round((t.entry - anchor)/sd1 * 100)/100 : null;
 
   const rPlan = (t.sl && t.tp)
@@ -140,18 +196,18 @@ function cmdLog_(text){
     id, today, nowStr_(), t.side, t.entry, t.sl || '', t.tp || '', t.lot || '',
     rPlan === null ? '' : rPlan,
     anchor || '', sd1 || '', dist === null ? '' : dist,
-    getKey_('contract') || '', t.reason || '',
+    jKey_('contract') || '', t.reason || '',
     'เปิด', '', '', '', broke ? 'ใช่' : '',
   ]);
 
   const L = [];
   L.push('📓 บันทึกแล้ว · ' + id);
   L.push('');
-  L.push((t.side === 'SELL' ? '🔴 ขาย ' : '🟢 ซื้อ ') + fmt_(t.entry)
+  L.push((t.side === 'SELL' ? '🔴 ขาย ' : '🟢 ซื้อ ') + jFmt_(t.entry)
        + (t.lot ? '  ×' + t.lot : ''));
-  if (t.sl) L.push('　 SL ' + fmt_(t.sl) + ' (เสี่ยง ' + Math.round(Math.abs(t.entry - t.sl)) + ' จุด)');
-  if (t.tp) L.push('　 TP ' + fmt_(t.tp) + (rPlan ? '  ·  R:R  1 : ' + rPlan : ''));
-  if (dist !== null) L.push('　 ยืนที่ ' + signed_(dist) + ' SD จาก anchor ' + fmt_(anchor));
+  if (t.sl) L.push('　 SL ' + jFmt_(t.sl) + ' (เสี่ยง ' + Math.round(Math.abs(t.entry - t.sl)) + ' จุด)');
+  if (t.tp) L.push('　 TP ' + jFmt_(t.tp) + (rPlan ? '  ·  R:R  1 : ' + rPlan : ''));
+  if (dist !== null) L.push('　 ยืนที่ ' + jSigned_(dist) + ' SD จาก anchor ' + jFmt_(anchor));
   L.push('');
 
   if (broke){
@@ -207,10 +263,10 @@ function cmdClose_(text){
   const icon = result === 'ได้' ? '✅' : result === 'เสีย' ? '❌' : '⚪️';
 
   const L = [];
-  L.push(icon + ' ปิด ' + rows[r][H['id']] + ' ที่ ' + fmt_(exit));
-  L.push('　 ' + signed_(Math.round(pts)) + ' จุด' + (R === null ? '' : '  ·  ' + signed_(R) + ' R'));
+  L.push(icon + ' ปิด ' + rows[r][H['id']] + ' ที่ ' + jFmt_(exit));
+  L.push('　 ' + jSigned_(Math.round(pts)) + ' จุด' + (R === null ? '' : '  ·  ' + jSigned_(R) + ' R'));
   L.push('');
-  L.push('วันนี้ ' + stat.win + ' เขียว / ' + stat.losses + ' แดง · รวม ' + signed_(round2_(stat.R)) + ' R');
+  L.push('วันนี้ ' + stat.win + ' เขียว / ' + stat.losses + ' แดง · รวม ' + jSigned_(round2_(stat.R)) + ' R');
 
   if (stat.losses >= LOG.MAX_LOSS_DAY){
     L.push('');
@@ -274,7 +330,7 @@ function cmdStats_(text){
   L.push('จด ' + n + ' ไม้ · ' + nday + ' วัน · เฉลี่ย ' + round2_(n/nday) + ' ไม้/วัน');
   if (closed){
     L.push('ปิดแล้ว ' + closed + ' ไม้ · ชนะ ' + Math.round(win/closed*100) + '%');
-    L.push('รวม ' + signed_(round2_(R)) + ' R · เฉลี่ย ' + signed_(round2_(R/closed)) + ' R/ไม้');
+    L.push('รวม ' + jSigned_(round2_(R)) + ' R · เฉลี่ย ' + jSigned_(round2_(R/closed)) + ' R/ไม้');
   }
   L.push('');
   L.push('*ตัววัดที่คุมได้จริง*');
@@ -283,7 +339,7 @@ function cmdStats_(text){
 
   if (brokeN){
     L.push('');
-    L.push('❗️ ไม้ที่เข้าหลังแดงครบโควตา: ' + brokeN + ' ไม้ · รวม ' + signed_(round2_(brokeR)) + ' R');
+    L.push('❗️ ไม้ที่เข้าหลังแดงครบโควตา: ' + brokeN + ' ไม้ · รวม ' + jSigned_(round2_(brokeR)) + ' R');
     L.push(brokeR < 0
       ? 'นี่คือราคาของการเอาคืน — ไม่ต้องเถียง ตัวเลขมันฟ้องเอง'
       : 'รอบนี้รอด แต่ 1 รอบยังไม่ใช่สถิติ ดูยาวๆ');
@@ -321,14 +377,14 @@ function nightlyJournalCheck(){
   const stat = dayStats_(sh, day);
 
   if (stat.open > 0){
-    sendTelegram_('🌙 ยังมีไม้ค้าง ' + stat.open + ' ไม้ ยังไม่ได้ปิดในสมุด\n`/close <ราคา>` ก่อนนอน');
+    tg_('🌙 ยังมีไม้ค้าง ' + stat.open + ' ไม้ ยังไม่ได้ปิดในสมุด\n`/close <ราคา>` ก่อนนอน');
     return;
   }
   if (stat.total === 0){
-    sendTelegram_('🌙 วันนี้ยังไม่มีบันทึกเลย\nถ้าไม่ได้เทรด พิมพ์ `/note ไม่เทรด` — วันที่ไม่เทรดก็คือข้อมูล');
+    tg_('🌙 วันนี้ยังไม่มีบันทึกเลย\nถ้าไม่ได้เทรด พิมพ์ `/note ไม่เทรด` — วันที่ไม่เทรดก็คือข้อมูล');
     return;
   }
-  sendTelegram_('🌙 วันนี้จด ' + stat.total + ' ไม้ ครบแล้ว · ' + signed_(round2_(stat.R)) + ' R\nจบวัน 🥷');
+  tg_('🌙 วันนี้จด ' + stat.total + ' ไม้ ครบแล้ว · ' + jSigned_(round2_(stat.R)) + ' R\nจบวัน 🥷');
 }
 
 /* ============================================================
@@ -376,14 +432,16 @@ function installJournal(){
   // เช็คว่ามีฟังก์ชันส่ง Telegram ให้ใช้ไหม
   var canSend = false;
   try { canSend = (typeof sendTelegram_ === 'function'); } catch(e){}
-  done.push(canSend ? '✅ ต่อกับ Telegram ได้' : '⚠️ ไม่เจอ sendTelegram_ — แก้ชื่อให้ตรงกับฟังก์ชันส่งข้อความเดิม');
+  done.push(canSend ? '✅ ใช้ตัวส่ง Telegram เดิมของโปรเจกต์'
+                    : (CORE.BOT_TOKEN && CORE.CHAT_ID ? '✅ ส่ง Telegram เองด้วย CORE.BOT_TOKEN'
+                                                        : '⚠️ ยังส่ง Telegram ไม่ได้ — ใส่ CORE.BOT_TOKEN + CORE.CHAT_ID'));
 
   done.push('⬜️ เหลือขั้นเดียว: เติม 2 บรรทัดใน doPost (ดู INSTALL ท้ายไฟล์) แล้ว Deploy → New version');
 
   const msg = '🛠 ติดตั้งสมุดบันทึก\n\n' + done.join('\n');
   Logger.log(msg);
   if (canSend){
-    try { sendTelegram_(msg + '\n\nลองพิมพ์ `/log ขาย 4130 sl 4165 tp 4090` ดูได้เลย'); } catch(e){}
+    try { tg_(msg + '\n\nลองพิมพ์ `/log ขาย 4130 sl 4165 tp 4090` ดูได้เลย'); } catch(e){}
   }
   return msg;
 }
@@ -391,7 +449,7 @@ function installJournal(){
 /* ---------- helper ---------- */
 
 function logSheet_(){
-  const ss = SpreadsheetApp.getActive();
+  const ss = ss_();
   var sh = ss.getSheetByName(LOG.SHEET);
   if (!sh){
     sh = ss.insertSheet(LOG.SHEET);
@@ -441,7 +499,7 @@ function round2_(n){  return Math.round(Number(n)*100)/100; }
    2. ใน doPost เดิม เติม 2 บรรทัดนี้ "ก่อน" โค้ดเดิมทั้งหมด:
 
         const j = handleJournalCommand_(text);
-        if (j){ sendTelegram_(j); return ContentService.createTextOutput('ok'); }
+        if (j){ tg_(j); return ContentService.createTextOutput('ok'); }
 
    3. ตั้ง trigger: nightlyJournalCheck · Day timer · 11pm to midnight
 
@@ -520,7 +578,7 @@ function buildBiasLine_(){
   const now  = vals[vals.length-1];
   const L = [];
 
-  L.push('📊 Bias ' + signed_(now) + ' · ' + biasWord_(now));
+  L.push('📊 Bias ' + jSigned_(now) + ' · ' + biasWord_(now));
   if (vals.length >= 2){
     L.push('　 ' + sparkline_(vals) + '  (' + vals.length + ' ช็อต)');
   }
@@ -556,8 +614,8 @@ function biasDaySummary_(){
   const L = [];
   L.push('📊 *สรุป Bias วันนี้*');
   L.push('');
-  L.push('ราคา ' + fmt_(p0) + ' → ' + fmt_(p1) + '　' + signed_(Math.round(p1-p0)) + ' จุด');
-  L.push('Bias เฉลี่ย ' + signed_(Math.round(avg)) + ' · ' + biasWord_(Math.round(avg)));
+  L.push('ราคา ' + jFmt_(p0) + ' → ' + jFmt_(p1) + '　' + jSigned_(Math.round(p1-p0)) + ' จุด');
+  L.push('Bias เฉลี่ย ' + jSigned_(Math.round(avg)) + ' · ' + biasWord_(Math.round(avg)));
   L.push('　 ' + sparkline_(vals));
   L.push('');
   L.push('_วอลุ่มบอกว่าของไปกองตรงไหน ไม่ได้บอกว่าใครซื้อใครขาย_');
@@ -568,7 +626,7 @@ function biasDaySummary_(){
 /* ---------- helper ---------- */
 
 function biasSheet_(){
-  const ss = SpreadsheetApp.getActive();
+  const ss = ss_();
   var sh = ss.getSheetByName(BIAS.SHEET);
   if (!sh){
     sh = ss.insertSheet(BIAS.SHEET);
