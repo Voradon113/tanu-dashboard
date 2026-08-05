@@ -348,6 +348,42 @@ function handleJournalCommand_(text){
   return null;
 }
 
+/* ============================================================
+   8) ตัวติดตั้ง — กดรันครั้งเดียว ไม่ต้องตั้งค่าอะไรเองเลย
+   ------------------------------------------------------------
+   สร้างชีต · สร้าง trigger · ยิงข้อความทดสอบ · บอกว่ายังขาดอะไร
+   รันซ้ำได้ ไม่พัง (ลบ trigger เก่าก่อนสร้างใหม่เสมอ)
+   ============================================================ */
+
+function installJournal(){
+  const done = [];
+
+  // ชีต
+  const sh = logSheet_();
+  done.push('✅ ชีต "' + LOG.SHEET + '" พร้อม (' + Math.max(0, sh.getLastRow()-1) + ' แถว)');
+
+  // trigger กลางคืน — ลบของเดิมก่อน กันซ้ำเวลารันหลายรอบ
+  ScriptApp.getProjectTriggers().forEach(function(t){
+    if (t.getHandlerFunction() === 'nightlyJournalCheck') ScriptApp.deleteTrigger(t);
+  });
+  ScriptApp.newTrigger('nightlyJournalCheck').timeBased().atHour(23).everyDays(1).create();
+  done.push('✅ ตั้งเตือน 23:00–24:00 แล้ว');
+
+  // เช็คว่ามีฟังก์ชันส่ง Telegram ให้ใช้ไหม
+  var canSend = false;
+  try { canSend = (typeof sendTelegram_ === 'function'); } catch(e){}
+  done.push(canSend ? '✅ ต่อกับ Telegram ได้' : '⚠️ ไม่เจอ sendTelegram_ — แก้ชื่อให้ตรงกับฟังก์ชันส่งข้อความเดิม');
+
+  done.push('⬜️ เหลือขั้นเดียว: เติม 2 บรรทัดใน doPost (ดู INSTALL ท้ายไฟล์) แล้ว Deploy → New version');
+
+  const msg = '🛠 ติดตั้งสมุดบันทึก\n\n' + done.join('\n');
+  Logger.log(msg);
+  if (canSend){
+    try { sendTelegram_(msg + '\n\nลองพิมพ์ `/log ขาย 4130 sl 4165 tp 4090` ดูได้เลย'); } catch(e){}
+  }
+  return msg;
+}
+
 /* ---------- helper ---------- */
 
 function logSheet_(){
