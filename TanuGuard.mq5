@@ -18,10 +18,10 @@
 CTrade trade;
 
 //------------------------------------------------------------------ ตั้งค่า
-enum ENUM_MODE { MODE_WARN = 0, MODE_CLOSE = 1 };
+enum ENUM_GUARD { GUARD_WARN = 0, GUARD_CLOSE = 1 };
 
 input group           "โหมด"
-input ENUM_MODE  Mode              = MODE_CLOSE;  // เตือนเฉยๆ หรือปิดไม้ที่ผิดกฎ
+input ENUM_GUARD  Mode              = GUARD_CLOSE;  // เตือนเฉยๆ หรือปิดไม้ที่ผิดกฎ
 input bool       OnlyThisChart     = true;        // ดูเฉพาะสัญลักษณ์บนชาร์ตนี้
 
 input group           "กฎรายวัน"
@@ -63,7 +63,7 @@ int OnInit()
    if(MinStopPrice >= MaxStopPrice)
    { Alert("TanuGuard: MinStopPrice ต้องน้อยกว่า MaxStopPrice"); return(INIT_PARAMETERS_INCORRECT); }
 
-   Say("🛡 TanuGuard เริ่มทำงาน · โหมด " + (Mode==MODE_CLOSE ? "ปิดไม้ที่ผิดกฎ" : "เตือนอย่างเดียว"));
+   Say("🛡 TanuGuard เริ่มทำงาน · โหมด " + (Mode==GUARD_CLOSE ? "ปิดไม้ที่ผิดกฎ" : "เตือนอย่างเดียว"));
    return(INIT_SUCCEEDED);
 }
 
@@ -239,7 +239,7 @@ void EnforceStop(ulong t, bool buy, double open)
    bool widened = buy ? (now < orig - _Point) : (now > orig + _Point);
    if(!widened) return;
 
-   if(Mode == MODE_CLOSE)
+   if(Mode == GUARD_CLOSE)
    {
       if(trade.PositionModify(t, orig, tp))
          Say(StringFormat("🔒 SL ถูกขยับออก — ดึงกลับไปที่ %.2f แล้ว", orig));
@@ -292,7 +292,7 @@ void ManagePartial(ulong t, string sym, bool buy, double open)
 //------------------------------------------------------------------ ผิดกฎ
 void Violate(ulong t, string why)
 {
-   if(Mode == MODE_WARN){ Nag("⛔️ ผิดกฎ: " + why); return; }
+   if(Mode == GUARD_WARN){ Nag("⛔️ ผิดกฎ: " + why); return; }
    if(!PositionSelectByTicket(t)) return;
 
    string d = Describe(t);
@@ -381,8 +381,8 @@ string UrlEncode(string s)
 //  3. อยากให้ส่ง Telegram: Tools > Options > Expert Advisors
 //     ติ๊ก Allow WebRequest แล้วใส่  https://api.telegram.org
 //
-//  สัปดาห์แรกให้ตั้ง Mode = MODE_WARN ก่อน
-//  ดูว่ามันเตือนตรงที่ควรเตือนไหม แล้วค่อยเปลี่ยนเป็น MODE_CLOSE
+//  สัปดาห์แรกให้ตั้ง Mode = GUARD_WARN ก่อน
+//  ดูว่ามันเตือนตรงที่ควรเตือนไหม แล้วค่อยเปลี่ยนเป็น GUARD_CLOSE
 //
 //  ⚠️ EA ตัวนี้ไม่เปิดออเดอร์ใหม่ในทุกกรณี
 //     คำสั่งที่มีคือ PositionClose / PositionClosePartial / PositionModify เท่านั้น
