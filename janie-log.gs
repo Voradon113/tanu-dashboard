@@ -89,12 +89,19 @@ function parseTrade_(text){
     .replace(/\s+/g, ' ')
     .trim();
 
+  // ขนาดไม้ต้องมีป้ายกำกับ ไม่งั้น "ย่อ 61.8" ในช่องเหตุผลจะถูกอ่านเป็นจำนวนล็อต
+  var lot = null;
+  for (var i=0; i<smalls.length; i++){
+    const near = low.slice(Math.max(0, smalls[i].at - 10), smalls[i].at);
+    if (/lot|ล็อต|ไม้|[x×]\s*$/.test(near)){ lot = smalls[i].v; break; }
+  }
+
   return {
     side  : side,
     entry : entry,
     sl    : sl,
     tp    : tp,
-    lot   : smalls.length ? smalls[0].v : null,
+    lot   : lot,
     reason: reason,
   };
 }
