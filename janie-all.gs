@@ -25,10 +25,24 @@ const CORE = {
 /* ---------- สะพานไปหาของที่อาจมีอยู่แล้วในโปรเจกต์ ---------- */
 
 function ss_(){
-  if (CORE.SHEET_ID) return SpreadsheetApp.openById(CORE.SHEET_ID);
+  // เก็บ ID ไว้ใน Script Properties ด้วย — เวลาวางโค้ดทับ ค่าที่ตั้งไว้จะไม่หายไปกับไฟล์
+  const saved = PropertiesService.getScriptProperties().getProperty('SHEET_ID');
+  const id    = CORE.SHEET_ID || saved;
+  if (id){
+    if (CORE.SHEET_ID && CORE.SHEET_ID !== saved){
+      PropertiesService.getScriptProperties().setProperty('SHEET_ID', CORE.SHEET_ID);
+    }
+    return SpreadsheetApp.openById(id);
+  }
   const a = SpreadsheetApp.getActive();
-  if (!a) throw new Error('สคริปต์นี้ไม่ได้ผูกกับชีต — ใส่ CORE.SHEET_ID ข้างบนก่อน');
+  if (!a) throw new Error('ยังไม่รู้ว่าชีตไหน — ใส่ CORE.SHEET_ID ข้างบน หรือรัน setSheetId(\'<id>\') ครั้งเดียว');
   return a;
+}
+
+/** รันครั้งเดียวพอ แล้วจำถาวร ต่อให้วางโค้ดทับกี่รอบก็ไม่หาย */
+function setSheetId(id){
+  PropertiesService.getScriptProperties().setProperty('SHEET_ID', String(id).trim());
+  return 'จำ SHEET_ID แล้ว · ' + SpreadsheetApp.openById(String(id).trim()).getName();
 }
 
 /** ใช้ของเดิมถ้ามี ไม่มีก็ส่งเอง — typeof ไม่พังแม้ตัวแปรไม่เคยประกาศ */
