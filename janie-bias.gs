@@ -138,7 +138,7 @@ function biasSheet_(){
 function todayRows_(){
   const day = todayStr_();
   return biasSheet_().getDataRange().getValues().slice(1)
-    .filter(function(r){ return String(r[0]) === day; });
+    .filter(function(r){ return dayStr_(r[0]) === day; });
 }
 
 function lastRow_(){

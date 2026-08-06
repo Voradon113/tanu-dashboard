@@ -237,17 +237,16 @@ function cmdStats_(text){
   const sh   = logSheet_();
   const rows = sh.getDataRange().getValues();
   const H    = headerMap_(rows[0]);
-  const cut  = new Date(Date.now() - back*86400000);
+  const cutStr = Utilities.formatDate(new Date(Date.now() - back*86400000), LOG.TZ, 'yyyy-MM-dd');
 
   var n=0, closed=0, win=0, R=0, noSL=0, brokeN=0, brokeR=0;
   const dayset = {}, cleanday = {};
 
   for (var i=1; i<rows.length; i++){
-    const d = new Date(String(rows[i][H['วันที่']]) + 'T00:00:00');
-    if (isNaN(d) || d < cut) continue;
+    const day = dayStr_(rows[i][H['วันที่']]);
+    if (!day || day < cutStr) continue;
 
     n++;
-    const day = String(rows[i][H['วันที่']]);
     dayset[day] = true;
     if (!rows[i][H['sl']]) noSL++;
     if (String(rows[i][H['ฝืนกฎ']]) === 'ใช่'){
@@ -416,7 +415,7 @@ function dayStats_(sh, day){
   const H    = headerMap_(rows[0]);
   var total=0, open=0, win=0, losses=0, R=0;
   for (var i=1; i<rows.length; i++){
-    if (String(rows[i][H['วันที่']]) !== day) continue;
+    if (dayStr_(rows[i][H['วันที่']]) !== day) continue;
     const res = String(rows[i][H['ผล']]);
     if (res === 'โน้ต') continue;
     total++;
@@ -426,6 +425,12 @@ function dayStats_(sh, day){
     R += num_(rows[i][H['R_จริง']]) || 0;
   }
   return {total:total, open:open, win:win, losses:losses, R:R};
+}
+
+/** ช่องวันที่ที่ Sheets เก็บ อาจกลับมาเป็น Date object ไม่ใช่ข้อความ — ปรับให้เป็น yyyy-MM-dd เสมอ */
+function dayStr_(v){
+  if (v instanceof Date) return Utilities.formatDate(v, LOG.TZ, 'yyyy-MM-dd');
+  return String(v).trim().slice(0,10);
 }
 
 function todayStr_(){ return Utilities.formatDate(new Date(), LOG.TZ, 'yyyy-MM-dd'); }
