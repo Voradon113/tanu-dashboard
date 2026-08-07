@@ -102,16 +102,24 @@ function buildBiasLine_(){
 
 /* ---------- 4) สรุปปิดวัน ---------- */
 
-function biasDaySummary_(){
-  const rows = todayRows_();
-  if (rows.length < 2) return '📊 วันนี้ข้อมูลไม่พอสรุป';
+function biasDaySummary_(day){
+  const all = biasSheet_().getDataRange().getValues().slice(1);
+  if (!all.length){
+    return '📊 ชีต bias ยังว่าง — ต้องต่อ pushSnapshot_() เข้ากับตอนที่ JANIE อ่าน QuikStrike ก่อน';
+  }
+  // เว้นว่าง = วันล่าสุดที่มีข้อมูล ไม่ใช่ "วันนี้" — เรียกเช้าวันใหม่ก็ยังได้สรุปเมื่อวาน
+  const target = day || dayStr_(all[all.length-1][0]);
+  const rows   = all.filter(function(r){ return dayStr_(r[0]) === target; });
+  if (rows.length < 2){
+    return '📊 ' + target + ' มีแค่ ' + rows.length + ' ช็อต — ต้องมีอย่างน้อย 2 ถึงจะเทียบได้';
+  }
   const vals = rows.map(function(r){ return Number(r[5]); })
                    .filter(function(v){ return !isNaN(v); });
   const avg  = vals.reduce(function(a,b){ return a+b; }, 0) / vals.length;
   const p0   = Number(rows[0][2]), p1 = Number(rows[rows.length-1][2]);
 
   const L = [];
-  L.push('📊 *สรุป Bias วันนี้*');
+  L.push('📊 *สรุป Bias · ' + target + '*');
   L.push('');
   L.push('ราคา ' + fmt_(p0) + ' → ' + fmt_(p1) + '　' + signed_(Math.round(p1-p0)) + ' จุด');
   L.push('Bias เฉลี่ย ' + signed_(Math.round(avg)) + ' · ' + biasWord_(Math.round(avg)));
@@ -135,8 +143,9 @@ function biasSheet_(){
   return sh;
 }
 
-function todayRows_(){
-  const day = todayStr_();
+function todayRows_(){ return rowsOfDay_(todayStr_()); }
+
+function rowsOfDay_(day){
   return biasSheet_().getDataRange().getValues().slice(1)
     .filter(function(r){ return dayStr_(r[0]) === day; });
 }
