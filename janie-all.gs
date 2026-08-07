@@ -196,15 +196,15 @@ function cmdLog_(text){
     ].join('\n');
   }
 
-  const sh    = logSheet_();
-  const today = todayStr_();
-  const stat  = dayStats_(sh, today);
+  const sh    = jLogSheet_();
+  const today = jToday_();
+  const stat  = jDayStats_(sh, today);
 
   // ไม้ที่ 3 หลังแดง 2 — ยังจดให้ แต่ติดธงไว้ ให้ /stats มันฟ้องเองตอนสิ้นสัปดาห์
   const broke = stat.losses >= LOG.MAX_LOSS_DAY;
 
-  const anchor = num_(jKey_('anchor'));
-  const sd1    = num_(jKey_('sd1'));
+  const anchor = jNum_(jKey_('anchor'));
+  const sd1    = jNum_(jKey_('sd1'));
   const dist   = (anchor && sd1) ? Math.round((t.entry - anchor)/sd1 * 100)/100 : null;
 
   const rPlan = (t.sl && t.tp)
@@ -214,7 +214,7 @@ function cmdLog_(text){
   const id = 'T' + Utilities.formatDate(new Date(), LOG.TZ, 'yyMMdd-HHmm');
 
   sh.appendRow([
-    id, today, nowStr_(), t.side, t.entry, t.sl || '', t.tp || '', t.lot || '',
+    id, today, jNow_(), t.side, t.entry, t.sl || '', t.tp || '', t.lot || '',
     rPlan === null ? '' : rPlan,
     anchor || '', sd1 || '', dist === null ? '' : dist,
     jKey_('contract') || '', t.reason || '',
@@ -249,9 +249,9 @@ function cmdLog_(text){
    ============================================================ */
 
 function cmdClose_(text){
-  const sh   = logSheet_();
+  const sh   = jLogSheet_();
   const rows = sh.getDataRange().getValues();
-  const H    = headerMap_(rows[0]);
+  const H    = jHead_(rows[0]);
 
   // ไม้ที่ยังเปิด อันล่างสุด = อันล่าสุด
   var r = -1;
@@ -278,16 +278,16 @@ function cmdClose_(text){
   sh.getRange(r+1, H['ผล']+1).setValue(result);
   sh.getRange(r+1, H['exit']+1).setValue(exit);
   sh.getRange(r+1, H['R_จริง']+1).setValue(R === null ? '' : R);
-  sh.getRange(r+1, H['เวลาปิด']+1).setValue(nowStr_());
+  sh.getRange(r+1, H['เวลาปิด']+1).setValue(jNow_());
 
-  const stat = dayStats_(sh, todayStr_());
+  const stat = jDayStats_(sh, jToday_());
   const icon = result === 'ได้' ? '✅' : result === 'เสีย' ? '❌' : '⚪️';
 
   const L = [];
   L.push(icon + ' ปิด ' + rows[r][H['id']] + ' ที่ ' + jFmt_(exit));
   L.push('　 ' + jSigned_(Math.round(pts)) + ' จุด' + (R === null ? '' : '  ·  ' + jSigned_(R) + ' R'));
   L.push('');
-  L.push('วันนี้ ' + stat.win + ' เขียว / ' + stat.losses + ' แดง · รวม ' + jSigned_(round2_(stat.R)) + ' R');
+  L.push('วันนี้ ' + stat.win + ' เขียว / ' + stat.losses + ' แดง · รวม ' + jSigned_(jRound2_(stat.R)) + ' R');
 
   if (stat.losses >= LOG.MAX_LOSS_DAY){
     L.push('');
@@ -308,16 +308,16 @@ function cmdStats_(text){
   const days = (String(text).match(/(\d+)/) || [])[1];
   const back = days ? Number(days) : 7;
 
-  const sh   = logSheet_();
+  const sh   = jLogSheet_();
   const rows = sh.getDataRange().getValues();
-  const H    = headerMap_(rows[0]);
+  const H    = jHead_(rows[0]);
   const cutStr = Utilities.formatDate(new Date(Date.now() - back*86400000), LOG.TZ, 'yyyy-MM-dd');
 
   var n=0, closed=0, win=0, R=0, noSL=0, brokeN=0, brokeR=0;
   const dayset = {}, cleanday = {};
 
   for (var i=1; i<rows.length; i++){
-    const day = dayStr_(rows[i][H['วันที่']]);
+    const day = jDayStr_(rows[i][H['วันที่']]);
     if (!day || day < cutStr) continue;
 
     n++;
@@ -325,7 +325,7 @@ function cmdStats_(text){
     if (!rows[i][H['sl']]) noSL++;
     if (String(rows[i][H['ฝืนกฎ']]) === 'ใช่'){
       brokeN++;
-      brokeR += num_(rows[i][H['R_จริง']]) || 0;
+      brokeR += jNum_(rows[i][H['R_จริง']]) || 0;
       cleanday[day] = false;
     } else if (cleanday[day] === undefined){
       cleanday[day] = true;
@@ -335,7 +335,7 @@ function cmdStats_(text){
     if (res !== 'เปิด' && res !== ''){
       closed++;
       if (res === 'ได้') win++;
-      R += num_(rows[i][H['R_จริง']]) || 0;
+      R += jNum_(rows[i][H['R_จริง']]) || 0;
     }
   }
 
@@ -347,10 +347,10 @@ function cmdStats_(text){
   const L = [];
   L.push('📊 *' + back + ' วันล่าสุด*');
   L.push('');
-  L.push('จด ' + n + ' ไม้ · ' + nday + ' วัน · เฉลี่ย ' + round2_(n/nday) + ' ไม้/วัน');
+  L.push('จด ' + n + ' ไม้ · ' + nday + ' วัน · เฉลี่ย ' + jRound2_(n/nday) + ' ไม้/วัน');
   if (closed){
     L.push('ปิดแล้ว ' + closed + ' ไม้ · ชนะ ' + Math.round(win/closed*100) + '%');
-    L.push('รวม ' + jSigned_(round2_(R)) + ' R · เฉลี่ย ' + jSigned_(round2_(R/closed)) + ' R/ไม้');
+    L.push('รวม ' + jSigned_(jRound2_(R)) + ' R · เฉลี่ย ' + jSigned_(jRound2_(R/closed)) + ' R/ไม้');
   }
   L.push('');
   L.push('*ตัววัดที่คุมได้จริง*');
@@ -359,7 +359,7 @@ function cmdStats_(text){
 
   if (brokeN){
     L.push('');
-    L.push('❗️ ไม้ที่เข้าหลังแดงครบโควตา: ' + brokeN + ' ไม้ · รวม ' + jSigned_(round2_(brokeR)) + ' R');
+    L.push('❗️ ไม้ที่เข้าหลังแดงครบโควตา: ' + brokeN + ' ไม้ · รวม ' + jSigned_(jRound2_(brokeR)) + ' R');
     L.push(brokeR < 0
       ? 'นี่คือราคาของการเอาคืน — ไม่ต้องเถียง ตัวเลขมันฟ้องเอง'
       : 'รอบนี้รอด แต่ 1 รอบยังไม่ใช่สถิติ ดูยาวๆ');
@@ -375,12 +375,12 @@ function cmdStats_(text){
    ============================================================ */
 
 function cmdNote_(text){
-  const sh = logSheet_();
+  const sh = jLogSheet_();
   const s  = String(text).trim();
   if (!s) return '📓 `/note ...` พิมพ์อะไรก็ได้ที่อยากจำ';
   sh.appendRow([
     'N' + Utilities.formatDate(new Date(), LOG.TZ, 'yyMMdd-HHmm'),
-    todayStr_(), nowStr_(), 'NOTE', '', '', '', '', '', '', '', '', '',
+    jToday_(), jNow_(), 'NOTE', '', '', '', '', '', '', '', '', '',
     s, 'โน้ต', '', '', '', '',
   ]);
   return '📓 จดแล้ว';
@@ -392,9 +392,9 @@ function cmdNote_(text){
    ============================================================ */
 
 function nightlyJournalCheck(){
-  const sh   = logSheet_();
-  const day  = todayStr_();
-  const stat = dayStats_(sh, day);
+  const sh   = jLogSheet_();
+  const day  = jToday_();
+  const stat = jDayStats_(sh, day);
 
   if (stat.open > 0){
     tg_('🌙 ยังมีไม้ค้าง ' + stat.open + ' ไม้ ยังไม่ได้ปิดในสมุด\n`/close <ราคา>` ก่อนนอน');
@@ -404,7 +404,7 @@ function nightlyJournalCheck(){
     tg_('🌙 วันนี้ยังไม่มีบันทึกเลย\nถ้าไม่ได้เทรด พิมพ์ `/note ไม่เทรด` — วันที่ไม่เทรดก็คือข้อมูล');
     return;
   }
-  tg_('🌙 วันนี้จด ' + stat.total + ' ไม้ ครบแล้ว · ' + jSigned_(round2_(stat.R)) + ' R\nจบวัน 🥷');
+  tg_('🌙 วันนี้จด ' + stat.total + ' ไม้ ครบแล้ว · ' + jSigned_(jRound2_(stat.R)) + ' R\nจบวัน 🥷');
 }
 
 /* ============================================================
@@ -439,7 +439,7 @@ function installJournal(){
   const done = [];
 
   // ชีต
-  const sh = logSheet_();
+  const sh = jLogSheet_();
   done.push('✅ ชีต "' + LOG.SHEET + '" พร้อม (' + Math.max(0, sh.getLastRow()-1) + ' แถว)');
 
   // trigger กลางคืน — ลบของเดิมก่อน กันซ้ำเวลารันหลายรอบ
@@ -468,7 +468,7 @@ function installJournal(){
 
 /* ---------- helper ---------- */
 
-function logSheet_(){
+function jLogSheet_(){
   const ss = ss_();
   var sh = ss.getSheetByName(LOG.SHEET);
   if (!sh){
@@ -479,40 +479,40 @@ function logSheet_(){
   return sh;
 }
 
-function headerMap_(row){
+function jHead_(row){
   const H = {};
   for (var i=0; i<row.length; i++) H[String(row[i]).trim()] = i;
   return H;
 }
 
 /** สรุปของวันนั้นวันเดียว — ใช้ทั้งตอนเตือนและตอนคุมโควตาแดง */
-function dayStats_(sh, day){
+function jDayStats_(sh, day){
   const rows = sh.getDataRange().getValues();
-  const H    = headerMap_(rows[0]);
+  const H    = jHead_(rows[0]);
   var total=0, open=0, win=0, losses=0, R=0;
   for (var i=1; i<rows.length; i++){
-    if (dayStr_(rows[i][H['วันที่']]) !== day) continue;
+    if (jDayStr_(rows[i][H['วันที่']]) !== day) continue;
     const res = String(rows[i][H['ผล']]);
     if (res === 'โน้ต') continue;
     total++;
     if (res === 'เปิด')      open++;
     else if (res === 'ได้')  win++;
     else if (res === 'เสีย') losses++;
-    R += num_(rows[i][H['R_จริง']]) || 0;
+    R += jNum_(rows[i][H['R_จริง']]) || 0;
   }
   return {total:total, open:open, win:win, losses:losses, R:R};
 }
 
 /** ช่องวันที่ที่ Sheets เก็บ อาจกลับมาเป็น Date object ไม่ใช่ข้อความ — ปรับให้เป็น yyyy-MM-dd เสมอ */
-function dayStr_(v){
+function jDayStr_(v){
   if (v instanceof Date) return Utilities.formatDate(v, LOG.TZ, 'yyyy-MM-dd');
   return String(v).trim().slice(0,10);
 }
 
-function todayStr_(){ return Utilities.formatDate(new Date(), LOG.TZ, 'yyyy-MM-dd'); }
-function nowStr_(){   return Utilities.formatDate(new Date(), LOG.TZ, 'HH:mm'); }
-function num_(v){     const n = Number(v); return isNaN(n) ? null : n; }
-function round2_(n){  return Math.round(Number(n)*100)/100; }
+function jToday_(){ return Utilities.formatDate(new Date(), LOG.TZ, 'yyyy-MM-dd'); }
+function jNow_(){   return Utilities.formatDate(new Date(), LOG.TZ, 'HH:mm'); }
+function jNum_(v){     const n = Number(v); return isNaN(n) ? null : n; }
+function jRound2_(n){  return Math.round(Number(n)*100)/100; }
 
 /* ============================================================
    INSTALL
@@ -548,7 +548,7 @@ function pushSnapshot_(price, callTotal, putTotal){
   const sh = biasSheet_();
   const b  = marginalBias_(callTotal, putTotal);
   sh.appendRow([
-    todayStr_(), nowStr_(), Number(price), Number(callTotal), Number(putTotal),
+    jToday_(), jNow_(), Number(price), Number(callTotal), Number(putTotal),
     b === null ? '' : b,
   ]);
   return b;
@@ -561,7 +561,7 @@ function pushSnapshot_(price, callTotal, putTotal){
  * คืน null ถ้าเป็นช็อตแรกของวัน หรือไม่มีของใหม่เข้ามาเลย
  */
 function marginalBias_(callTotal, putTotal){
-  const prev = lastRow_();
+  const prev = jLastRow_();
   if (!prev) return null;
   const dc = Number(callTotal) - Number(prev[3]);
   const dp = Number(putTotal)  - Number(prev[4]);
@@ -573,14 +573,14 @@ function marginalBias_(callTotal, putTotal){
 
 /* ---------- 2) แปลงเป็นภาพ ---------- */
 
-const SPARK = ['▁','▂','▃','▄','▅','▆','▇','█'];
+const J_SPARK = ['▁','▂','▃','▄','▅','▆','▇','█'];
 
 /** กราฟแท่งในบรรทัดเดียว — ส่งใน Telegram ได้ ไม่ต้องแนบรูป */
-function sparkline_(vals){
+function jSpark_(vals){
   if (!vals.length) return '';
   return vals.map(function(v){
     const i = Math.min(7, Math.max(0, Math.round((Number(v) + 100) / 200 * 7)));
-    return SPARK[i];
+    return J_SPARK[i];
   }).join('');
 }
 
@@ -596,7 +596,7 @@ function biasWord_(b){
 /* ---------- 3) บรรทัดที่เอาไปต่อท้ายข้อความเดิม ---------- */
 
 function buildBiasLine_(){
-  const rows = todayRows_();
+  const rows = jTodayRows_();
   const vals = rows.map(function(r){ return r[5]; })
                    .filter(function(v){ return v !== '' && v !== null; });
   if (!vals.length) return '';
@@ -606,7 +606,7 @@ function buildBiasLine_(){
 
   L.push('📊 Bias ' + jSigned_(now) + ' · ' + biasWord_(now));
   if (vals.length >= 2){
-    L.push('　 ' + sparkline_(vals) + '  (' + vals.length + ' ช็อต)');
+    L.push('　 ' + jSpark_(vals) + '  (' + vals.length + ' ช็อต)');
   }
 
   // ราคาไปทางหนึ่ง แต่ของใหม่ไหลอีกทาง = แรงกำลังจาง
@@ -635,8 +635,8 @@ function biasDaySummary_(day){
     return '📊 ชีต bias ยังว่าง — ต้องต่อ pushSnapshot_() เข้ากับตอนที่ JANIE อ่าน QuikStrike ก่อน';
   }
   // เว้นว่าง = วันล่าสุดที่มีข้อมูล ไม่ใช่ "วันนี้" — เรียกเช้าวันใหม่ก็ยังได้สรุปเมื่อวาน
-  const target = day || dayStr_(all[all.length-1][0]);
-  const rows   = all.filter(function(r){ return dayStr_(r[0]) === target; });
+  const target = day || jDayStr_(all[all.length-1][0]);
+  const rows   = all.filter(function(r){ return jDayStr_(r[0]) === target; });
   if (rows.length < 2){
     return '📊 ' + target + ' มีแค่ ' + rows.length + ' ช็อต — ต้องมีอย่างน้อย 2 ถึงจะเทียบได้';
   }
@@ -650,7 +650,7 @@ function biasDaySummary_(day){
   L.push('');
   L.push('ราคา ' + jFmt_(p0) + ' → ' + jFmt_(p1) + '　' + jSigned_(Math.round(p1-p0)) + ' จุด');
   L.push('Bias เฉลี่ย ' + jSigned_(Math.round(avg)) + ' · ' + biasWord_(Math.round(avg)));
-  L.push('　 ' + sparkline_(vals));
+  L.push('　 ' + jSpark_(vals));
   L.push('');
   L.push('_วอลุ่มบอกว่าของไปกองตรงไหน ไม่ได้บอกว่าใครซื้อใครขาย_');
   L.push('_คอลวิ่งแรงอาจเป็นคนขายคอลก็ได้ — ใช้เป็นตัวกรอง ไม่ใช่สัญญาณเข้า_ 🥷');
@@ -670,15 +670,15 @@ function biasSheet_(){
   return sh;
 }
 
-function todayRows_(){ return rowsOfDay_(todayStr_()); }
+function jTodayRows_(){ return jRowsOfDay_(jToday_()); }
 
-function rowsOfDay_(day){
+function jRowsOfDay_(day){
   return biasSheet_().getDataRange().getValues().slice(1)
-    .filter(function(r){ return dayStr_(r[0]) === day; });
+    .filter(function(r){ return jDayStr_(r[0]) === day; });
 }
 
-function lastRow_(){
-  const rows = todayRows_();
+function jLastRow_(){
+  const rows = jTodayRows_();
   return rows.length ? rows[rows.length-1] : null;
 }
 
