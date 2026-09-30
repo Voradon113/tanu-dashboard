@@ -1,0 +1,586 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="แผนเทรด">
+<meta name="theme-color" content="#101318">
+<title>TANU · ท่าไม้ตาย + กฎเงิน</title>
+
+<style>
+  :root{
+    --bg:#101318;  --surface:#171B21;  --raised:#1D222A;
+    --ink:#E4E8ED;  --dim:#9BA3AE;  --faint:#6C7480;
+    --line:#272D36;
+    --accent:#7BA6BE;  --accentSoft:#1B2731;
+    --green:#6FB98A;  --greenSoft:#16241C;
+    --red:#D2705C;    --redSoft:#2A1A16;
+    --shadow:none;
+    color-scheme:dark;
+  }
+  /* ตั้งใจให้ "ดำ" เป็นค่าเริ่มต้น เพราะหน้านี้ไว้อ่านก่อนนอน
+     เครื่องที่ตั้งสว่างไว้ ก็ยังกดปุ่มสลับได้ */
+  :root[data-force="light"]{
+    --bg:#F2F3F5;  --surface:#FFFFFF;  --raised:#FAFAFB;
+    --ink:#1A1D22;  --dim:#565C66;  --faint:#8A919C;
+    --line:#DFE2E7;
+    --accent:#3D6B84;  --accentSoft:#E7EFF3;
+    --green:#2F7D52;  --greenSoft:#E4F1E9;
+    --red:#B04A38;    --redSoft:#F8E7E3;
+    --shadow:0 1px 2px rgba(20,25,35,.06), 0 4px 14px rgba(20,25,35,.05);
+    color-scheme:light;
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:"Noto Sans Thai","Sarabun",Thonburi,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+    font-size:17px; line-height:1.85;
+    -webkit-text-size-adjust:100%;
+  }
+  .mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-variant-numeric:tabular-nums}
+
+  /* ---- nav ---- */
+  nav{
+    position:sticky; top:0; z-index:20;
+    background:color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--line);
+  }
+  .tabs{max-width:36rem; margin:0 auto; display:flex; gap:2px; padding:8px 12px; align-items:center}
+  .tabs a{
+    flex:1; text-align:center; text-decoration:none; color:var(--dim);
+    font-size:13.5px; font-weight:600; padding:9px 4px; border-radius:9px;
+    line-height:1.3;
+  }
+  .tabs a:hover{color:var(--ink); background:var(--raised)}
+  .tabs a:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+  .tabs a.on{color:var(--accent); background:var(--accentSoft)}
+  #themeBtn{
+    flex:0 0 auto; margin-left:4px; width:34px; height:34px; border-radius:9px;
+    border:1px solid var(--line); background:var(--raised); color:var(--dim);
+    font-size:15px; line-height:1; cursor:pointer; display:grid; place-items:center;
+  }
+  #themeBtn:hover{color:var(--ink)}
+  #themeBtn:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+
+  main{max-width:36rem; margin:0 auto; padding:26px 18px 96px}
+
+  /* ---- headings ---- */
+  .doc{scroll-margin-top:68px; margin-bottom:56px}
+  .eyebrow{
+    font-size:11.5px; font-weight:700; letter-spacing:.13em; text-transform:uppercase;
+    color:var(--faint); margin-bottom:6px;
+  }
+  h1{font-size:27px; line-height:1.35; font-weight:800; margin:0 0 6px; text-wrap:balance}
+  .sub{color:var(--dim); font-size:14.5px; margin:0 0 26px; line-height:1.7}
+  h2{
+    font-size:18.5px; font-weight:750; margin:36px 0 14px; text-wrap:balance;
+    padding-bottom:8px; border-bottom:1px solid var(--line);
+  }
+  h3{font-size:15.5px; font-weight:700; margin:24px 0 8px; color:var(--dim)}
+
+  p{margin:0 0 14px}
+  strong{font-weight:750}
+  .lead{font-size:18px}
+
+  /* ---- cards ---- */
+  .card{
+    background:var(--surface); border:1px solid var(--line); border-radius:13px;
+    padding:16px 17px; margin:0 0 12px; box-shadow:var(--shadow);
+  }
+  .card > :last-child{margin-bottom:0}
+  .card.hero{border-color:var(--accent); background:var(--accentSoft)}
+  .card.warn{border-left:3px solid var(--red)}
+  .card.good{border-left:3px solid var(--green)}
+
+  .rule{display:flex; gap:14px; align-items:flex-start}
+  .rn{
+    flex:0 0 auto; width:30px; height:30px; border-radius:8px;
+    display:grid; place-items:center; font-weight:750; font-size:14px;
+    background:var(--raised); color:var(--dim); border:1px solid var(--line);
+    font-family:ui-monospace,Menlo,monospace;
+  }
+  .rule.key .rn{background:var(--accent); color:var(--bg); border-color:var(--accent)}
+  .rt{flex:1; min-width:0}
+  .rt h4{margin:2px 0 6px; font-size:16px; font-weight:750; line-height:1.5}
+  .rt p{font-size:15px; color:var(--dim); margin:0 0 8px}
+  .rt p:last-child{margin-bottom:0}
+
+  blockquote{
+    margin:12px 0; padding:11px 15px; border-left:3px solid var(--accent);
+    background:var(--raised); border-radius:0 9px 9px 0;
+    font-size:15px; color:var(--dim); font-style:italic;
+  }
+  blockquote p{margin:0}
+
+  ul,ol{margin:0 0 14px; padding-left:22px}
+  li{margin:0 0 7px}
+  ul.bare{list-style:none; padding:0}
+  ul.bare li{display:flex; gap:10px; align-items:flex-start; margin-bottom:9px; font-size:15.5px}
+  .mk{flex:0 0 auto; font-size:15px; line-height:1.8}
+  .no .mk{color:var(--red)}
+  .yes .mk{color:var(--green)}
+
+  .steps{display:flex; flex-direction:column; gap:0; margin:0 0 14px}
+  .step{display:flex; gap:13px; padding:11px 0; border-bottom:1px solid var(--line)}
+  .step:last-child{border-bottom:0}
+  .sn{
+    flex:0 0 auto; width:22px; height:22px; margin-top:4px; border-radius:50%;
+    display:grid; place-items:center; font-size:12px; font-weight:750;
+    background:var(--accent); color:var(--bg);
+    font-family:ui-monospace,Menlo,monospace;
+  }
+  .step.stop .sn{background:var(--red)}
+  .sb{flex:1; min-width:0; font-size:15.5px}
+  .sb b{display:block; font-weight:700; margin-bottom:1px}
+  .sb small{display:block; color:var(--faint); font-size:13.5px; line-height:1.65}
+
+  .tw{overflow-x:auto; margin:0 0 14px; -webkit-overflow-scrolling:touch}
+  table{border-collapse:collapse; width:100%; font-size:14.5px; min-width:min-content}
+  th,td{padding:9px 11px; text-align:left; border-bottom:1px solid var(--line); white-space:nowrap}
+  th{font-size:12px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:var(--faint)}
+  td.n{font-family:ui-monospace,Menlo,monospace; font-variant-numeric:tabular-nums; text-align:right}
+  tr:last-child td{border-bottom:0}
+
+  code{
+    font-family:ui-monospace,Menlo,Consolas,monospace; font-size:14px;
+    background:var(--raised); border:1px solid var(--line);
+    padding:1.5px 6px; border-radius:6px; white-space:nowrap;
+  }
+  pre{
+    margin:0 0 14px; padding:14px 15px; overflow-x:auto;
+    background:var(--raised); border:1px solid var(--line); border-radius:11px;
+    font-family:ui-monospace,Menlo,Consolas,monospace; font-size:13.5px;
+    line-height:1.75; -webkit-overflow-scrolling:touch;
+  }
+  pre code{background:none; border:0; padding:0; white-space:pre}
+
+  .pill{display:inline-block; font-size:12px; font-weight:700; padding:3px 10px; border-radius:999px; letter-spacing:.02em; vertical-align:middle}
+  .pill.lock{background:var(--redSoft); color:var(--red)}
+  .pill.ok{background:var(--greenSoft); color:var(--green)}
+
+  hr{border:0; border-top:1px solid var(--line); margin:34px 0}
+  .foot{color:var(--faint); font-size:12.5px; line-height:1.7; text-align:center; margin-top:40px}
+  .foot a{color:var(--accent)}
+
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none!important; transition:none!important}
+    html{scroll-behavior:auto}
+  }
+</style>
+</head><body>
+<nav>
+  <div class="tabs">
+    <a href="#setup" class="on">ท่าไม้ตาย</a>
+    <a href="#money">กฎเงิน</a>
+    <a href="#log">จดไม้</a>
+    <a href="#day">ตารางวัน</a>
+    <button id="themeBtn" type="button" aria-label="สลับสว่าง/มืด" title="สลับสว่าง/มืด">🌙</button>
+  </div>
+</nav>
+<main>
+
+  <section class="doc" id="setup">
+    <div class="eyebrow">ท่าไม้ตาย · v2.1</div>
+    <h1>50-61.8 Retrace Sell</h1>
+    <p class="sub">
+      <span class="pill lock">🔒 ล็อกแล้ว</span>
+      ห้ามแก้จนกว่าจะครบ 20 ไม้
+    </p>
+
+    <h2>เงื่อนไข — ต้องครบทุกข้อ</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="sn">1</div>
+        <div class="sb"><b>ขาขึ้นแรง ≥ 12 จุด</b><small>ลากฟีโบบน M5</small></div>
+      </div>
+      <div class="step">
+        <div class="sn">2</div>
+        <div class="sb"><b>ราคาย่อเข้าโซน 50–61.8%</b><small>ของขานั้น</small></div>
+      </div>
+      <div class="step">
+        <div class="sn">3</div>
+        <div class="sb"><b>มีของทับโซน อย่างน้อย 1 อย่าง</b><small>เส้นเฉียง · MA · เส้น SD จาก anchor · OI wall</small></div>
+      </div>
+      <div class="step stop">
+        <div class="sn">4</div>
+        <div class="sb"><b>BOS หลุดโครงสร้างในโซน บน M1</b><small>ขาดข้อนี้ = ไม่มีไม้ ต่อให้ราคาแตะโซนสวยแค่ไหน</small></div>
+      </div>
+    </div>
+
+    <div class="card good">
+      <p style="margin:0"><strong>ยิ่งดีถ้ามี</strong> — ก่อนหน้าทำ <strong>V</strong> เก็บสตอปเหนือ high เก่า แล้วไม่ไปต่อ</p>
+    </div>
+
+    <h2>จุดเข้า</h2>
+    <div class="tw">
+      <table>
+        <tr><th></th><th>เข้าตรงไหน</th><th>SL</th></tr>
+        <tr><td><strong>① เบรก</strong></td><td>ตอน BOS หลุด</td><td>เหนือ high +1</td></tr>
+        <tr><td><strong>② รีเทส</strong></td><td>โซนเดิม</td><td>เหนือโซน +1</td></tr>
+      </table>
+    </div>
+    <p style="font-size:15px;color:var(--dim)">
+      <strong>รีเทสดีกว่าตรงที่</strong> ตั้ง limit รอได้ ไม่ต้องเฝ้า และ SL แคบกว่า = ไซซ์ได้มากกว่า
+    </p>
+
+    <div class="card warn">
+      <ul class="bare" style="margin:0">
+        <li class="no"><span class="mk">✕</span><span><strong>SL &lt; 2.5 จุด</strong> → ไม่เข้า &nbsp;<small style="color:var(--faint)">สเปรดกินเกิน 10% ของความเสี่ยง</small></span></li>
+        <li class="no"><span class="mk">✕</span><span><strong>SL &gt; 15 จุด</strong> → ไม่เข้า &nbsp;<small style="color:var(--faint)">มาสายแล้ว</small></span></li>
+      </ul>
+    </div>
+
+    <h2>ออก</h2>
+    <ul class="bare">
+      <li class="yes"><span class="mk">→</span><span><strong>+1R</strong> ปิดครึ่ง แล้วเลื่อน SL มาทุน</span></li>
+      <li class="yes"><span class="mk">→</span><span>ที่เหลือปล่อยถึงโครงสร้างถัดไป</span></li>
+      <li class="yes"><span class="mk">→</span><span>TP เป็นออเดอร์รอเสมอ <strong>ห้ามปิดมือ</strong></span></li>
+    </ul>
+
+    <h2>ห้าม</h2>
+    <ul class="bare">
+      <li class="no"><span class="mk">✕</span><span>เติมไม้ระหว่างทาง</span></li>
+      <li class="no"><span class="mk">✕</span><span>เข้าซ้ำถ้าโดน SL</span></li>
+      <li class="no"><span class="mk">✕</span><span>เข้าเพราะแตะโซนเฉยๆ (ไม่มี BOS)</span></li>
+      <li class="no"><span class="mk">✕</span><span>ขยับ SL ออก</span></li>
+      <li class="no"><span class="mk">✕</span><span>เข้านอกหน้าต่างเวลา</span></li>
+      <li class="no"><span class="mk">✕</span><span>เข้าเมื่อแดงครบ 2 ไม้ของวัน</span></li>
+    </ul>
+
+    <h2>หน้าต่างเวลา <small style="font-weight:500;color:var(--faint);font-size:13px">เวลาไทย</small></h2>
+    <div class="tw">
+      <table>
+        <tr><th>วัน</th><th>เล่นได้</th></tr>
+        <tr><td>จ · พ · ศ</td><td>ก่อน 08:30 เท่านั้น · หลังจากนั้น limit อย่างเดียว</td></tr>
+        <tr><td><strong>อ · พฤ</strong></td><td><strong>หลัง 18:00</strong></td></tr>
+        <tr><td>ส · อา</td><td>ไม่เล่น</td></tr>
+      </table>
+    </div>
+    <p style="font-size:15px;color:var(--red)"><strong>เว้น ±15 นาที รอบข่าวแรง</strong></p>
+
+    <h2>ยังไม่ทำ <small style="font-weight:500;color:var(--faint);font-size:13px">จนกว่าจะครบ 20 ไม้</small></h2>
+    <ul class="bare">
+      <li class="no"><span class="mk">✕</span><span>ทำฝั่งซื้อกลับด้าน — เพิ่มตัวแปรก่อนมีข้อมูล = ไม่รู้ว่าอะไรได้ผล</span></li>
+      <li class="no"><span class="mk">✕</span><span>ซื้อ ATAS</span></li>
+      <li class="no"><span class="mk">✕</span><span>เพิ่มอินดี้ใหม่</span></li>
+      <li class="no"><span class="mk">✕</span><span><strong>แก้กฎนี้</strong></span></li>
+    </ul>
+
+    <h2>ครบ 20 ไม้แล้วค่อยถาม</h2>
+    <ol style="font-size:15.5px">
+      <li>รีเทสได้ R ดีกว่าเบรกจริงไหม</li>
+      <li>ไม้ที่ไม่มี V ต่างจากไม้ที่มี V แค่ไหน</li>
+      <li>ไม้ที่สวนทิศ 30Y แย่กว่าจริงไหม</li>
+      <li>สเปรดกินไปกี่ R รวม</li>
+    </ol>
+    <div class="card hero">
+      <p style="margin:0"><strong>ก่อนครบ 20 ไม้ — ไม่ต้องตอบ ไม่ต้องเดา ไม่ต้องแก้อะไรทั้งนั้น</strong></p>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <div class="eyebrow" style="margin-bottom:8px">ไม้แรก</div>
+      <p class="mono" style="margin:0;font-size:15px">5 ส.ค. 2026 · ขาย 4,171 → 4,156.6 · <strong style="color:var(--green)">+1.6R</strong></p>
+    </div>
+  </section>
+
+  <section class="doc" id="money">
+    <div class="eyebrow">กฎเรื่องเงิน · 8 ข้อ</div>
+    <h1>ทุกข้อมีที่มาจากเหตุการณ์จริง</h1>
+    <p class="sub">เขียนจากสิ่งที่เล่าเอง ไม่ได้ลอกจากตำราไหน</p>
+
+    <div class="card hero">
+      <div class="rule key">
+        <div class="rn">0</div>
+        <div class="rt">
+          <h4>ห้ามตั้งเป้าเป็นตัวเงิน และห้ามผูกเป้ากับของที่อยากได้</h4>
+          <p>ข้อเดียวที่ถ้าพังแล้วอีก 7 ข้อไม่มีความหมาย</p>
+        </div>
+      </div>
+    </div>
+
+    <blockquote><p>ไปตั้งเป้าว่าอีกนิดเดียวจะได้ เช่น อีก 1 ล้านจะถึง เพื่อจะได้สิ่งนั้น แล้วสรุปพังหมด</p></blockquote>
+
+    <p style="font-size:15px;color:var(--dim)">นี่ไม่ใช่เรื่องวินัย มันเป็นเรื่องเลขคณิต:</p>
+    <div class="tw">
+      <table>
+        <tr><th>เหลืออีก</th><th>ถ้าไซซ์เท่าเดิม</th><th>สมองสั่งว่า</th></tr>
+        <tr><td class="n">1,000,000</td><td class="n">40 ไม้</td><td>ยังไหว</td></tr>
+        <tr><td class="n">300,000</td><td class="n">12 ไม้</td><td>เร็วกว่านี้ได้</td></tr>
+        <tr><td class="n">80,000</td><td class="n">3 ไม้</td><td style="color:var(--red)"><strong>เบิ้ล ไม้เดียวจบ</strong></td></tr>
+      </table>
+    </div>
+    <p style="font-size:15px"><strong>ยิ่งใกล้เป้า ความอดทนยิ่งหมด ไซซ์ยิ่งโต</strong> — ซึ่งกลับหัวกับการวางไซซ์ที่ถูก</p>
+    <p style="font-size:15px;color:var(--dim)">ที่ถูกคือ ทุนโต ไซซ์โต · ทุนหด ไซซ์หด · <strong>ไม่เกี่ยวกับว่าเหลืออีกเท่าไหร่ถึงเป้า</strong></p>
+
+    <h3>และนี่คือรากของทุกอย่างที่เหลือ</h3>
+    <ul style="font-size:15px;color:var(--dim)">
+      <li>ถอนแล้วโอนกลับ → เพราะยังไม่ถึงเป้า เงินก้อนนั้นเลย "ยังไม่ใช่ของเรา"</li>
+      <li>เข้าแล้วลบก็เบิ้ล → เพราะต้องปิดช่องว่างให้ทันเป้า</li>
+      <li>ไม่เคยจดสมุด → เพราะถ้าวัดที่ยอดเงิน สถิติกระบวนการมันไม่มีความหมาย</li>
+    </ul>
+    <p style="font-size:15px"><strong>แทนที่ด้วย:</strong> เป้าเป็น R และเป็นพฤติกรรม — <code>/stats</code> ไม่มีคำว่าบาทเลยสักตัว โดยตั้งใจ</p>
+
+    <hr>
+
+    <div class="card">
+      <div class="rule">
+        <div class="rn">1</div>
+        <div class="rt">
+          <h4>เงินที่ถอนแล้ว คือเงินของคนอื่น</h4>
+          <p>การถอนที่โอนกลับได้ ไม่ใช่การถอน มันคือการพักเงินไว้เฉยๆ</p>
+        </div>
+      </div>
+    </div>
+    <blockquote><p>ผมตายเพราะถอนกำไร ถอนทุนออกมา พอวันใหม่ดันติดลบ ก็เอาที่ถอนพร้อมทุนกลับไปเหมือนเดิม แล้วเสีย</p></blockquote>
+    <p style="font-size:15px;color:var(--dim)">ระดับความยาก — เลือกให้ยากกว่าที่ใจอยากได้ 1 ขั้นเสมอ:</p>
+    <div class="tw">
+      <table>
+        <tr><td class="n">1</td><td>บัญชีธนาคารเดียวกัน <span style="color:var(--red)">← อยู่ตรงนี้ = โอนกลับได้ใน 10 วิ</span></td></tr>
+        <tr><td class="n">2</td><td>บัญชีคนละธนาคาร ไม่ผูกแอป</td></tr>
+        <tr><td class="n">3</td><td><strong>ฝากประจำ / สลากออมสิน</strong> ← ขั้นต่ำที่ยอมรับได้</td></tr>
+        <tr><td class="n">4</td><td>ให้ภรรยา/แม่ถือ</td></tr>
+        <tr><td class="n">5</td><td>ทองแท่ง — ต้องขับรถไปขาย</td></tr>
+      </table>
+    </div>
+    <p style="font-size:15px;color:var(--red)"><strong>ข้อ 1-2 พิสูจน์แล้วว่าไม่รอด</strong></p>
+
+    <div class="card">
+      <div class="rule">
+        <div class="rn">2</div>
+        <div class="rt">
+          <h4>ห้ามเติมทุนในวันที่ติดลบ</h4>
+          <p>ไม่มีข้อยกเว้น ไม่มี "แต่วันนี้เซ็ตอัปดีมาก"</p>
+          <p>อยากเติมจริง → <strong>รอ 24 ชั่วโมง แล้วเติมในวันที่พอร์ตเขียว</strong></p>
+          <p>เงินที่เติมตอนแดงคือเงินไล่ตามความเสียหาย ไม่ใช่เงินลงทุน</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="rule">
+        <div class="rn">3</div>
+        <div class="rt">
+          <h4>ไซซ์คงที่เป็น % ของทุน ห้ามคิดเป็นบาท</h4>
+          <p>เสี่ยงไม้ละ <strong>1%</strong> ของทุน (1 แสน = เสี่ยง 1,000 ต่อไม้)</p>
+          <p>ทุนหด ไซซ์หดตาม — อัตโนมัติ ไม่ต้องตัดสินใจใหม่</p>
+          <p><strong>ห้ามเพิ่มไซซ์เพราะ "ไม้นี้มั่นใจ"</strong> — ความมั่นใจไม่ใช่ข้อมูล</p>
+          <p>TopStep เป็นสัญญาเต็มใบ ปัดเศษไม่ได้ → ปัด <strong>ลง</strong> เสมอ ไม่ไหวก็ไม่เข้า</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card warn">
+      <div class="rule">
+        <div class="rn">4</div>
+        <div class="rt">
+          <h4>แดง 2 ไม้ = จบวัน</h4>
+          <p><strong>ปิดจอ</strong> ไม่ใช่ลดไซซ์ ไม่ใช่ดูเฉยๆ</p>
+          <p>ไม้ที่ 3 ในวันแดงไม่ใช่ไม้ที่มีเซ็ตอัป มันคือไม้ที่เอาคืน</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="rule">
+        <div class="rn">5</div>
+        <div class="rt">
+          <h4>เข้าซ้ำเมื่อธีสิสยังอยู่เท่านั้น</h4>
+          <p>จากประวัติจริง: เข้าใหม่ 4 ครั้งใน 4 ชั่วโมงหลังธีสิสพัง = <strong style="color:var(--red)">−455 จาก −991 ทั้งหมด</strong></p>
+          <p>วิเคราะห์ไม่ได้ผิด <strong>การเข้าซ้ำต่างหากที่ผิด</strong></p>
+          <p>เช็ค 1 ข้อ: ราคาทำลายเหตุผลของไม้แรกไปแล้วหรือยัง — ถ้าใช่ = ไม่มีไม้ที่สอง</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="rule">
+        <div class="rn">6</div>
+        <div class="rt">
+          <h4>ถอนตามตาราง ไม่ถอนตามอารมณ์</h4>
+          <p><strong>สิ้นเดือน</strong> ถอน 30% ของกำไรเดือนนั้น ไปที่ระดับ 3 ขึ้นไป</p>
+          <p>ที่เหลือ 70% อยู่ในพอร์ต ให้ไซซ์โตตามข้อ 3</p>
+          <p>ห้ามถอนกลางเดือนเพราะกลัว · ห้ามไม่ถอนเพราะ "อีกนิดเดียวจะถึง"</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="rule">
+        <div class="rn">7</div>
+        <div class="rt">
+          <h4>วันที่ไม่มีเวลาดูจอ ห้ามเทรดสด</h4>
+          <p><strong>จ · พ · ศ = ตั้ง limit ตอนเช้าแล้วเดินหนี</strong> เท่านั้น</p>
+          <p>เทรดตอนไลฟ์ = ตัดสินใจด้วยสมองที่แบ่งไปอีกงาน นั่นไม่ใช่การเทรด นั่นคือการกดปุ่ม</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card warn">
+      <div class="rule">
+        <div class="rn">8</div>
+        <div class="rt">
+          <h4>ห้ามถือไม้ยาวสวนสิ่งที่ JANIE บอกทั้งวัน</h4>
+          <p>5 ส.ค. — JANIE ยิงมา 5 ช็อตใน 5 ชั่วโมง บอก "เอนขึ้น" ทั้ง 5 ช็อต ราคาวิ่ง <strong>+92 จุด</strong> และกำแพงพุทละลายจาก 104 สัญญาเหลือ <strong>1</strong></p>
+          <p><strong>ไม้สั้น (TP ไม่เกิน 1SD)</strong> — สวนได้ ย่อในขาขึ้นมีจริง</p>
+          <p><strong>ไม้ยาว (เป้าเป็นร้อยจุด)</strong> — ห้ามสวนถ้า JANIE พูดทางเดียวกัน 2 ช็อตติด</p>
+          <p>เส้นแบ่งคือ<strong>ระยะเป้า</strong> ไม่ใช่ความมั่นใจ</p>
+        </div>
+      </div>
+    </div>
+
+    <h2>เป้า 4 สัปดาห์แรก</h2>
+    <p style="font-size:14.5px;color:var(--faint);margin-top:-6px">ไม่มีตัวเลขเงินโดยตั้งใจ</p>
+    <ul class="bare">
+      <li class="yes"><span class="mk">☐</span><span>จดทุกไม้ — 100%</span></li>
+      <li class="yes"><span class="mk">☐</span><span>ทุกไม้มี SL ตั้งแต่ก่อนเข้า — 100%</span></li>
+      <li class="yes"><span class="mk">☐</span><span>วันที่ไม่ฝืนกฎข้อ 4 — เต็มทุกวัน</span></li>
+      <li class="yes"><span class="mk">☐</span><span>ไม่เทรดสดในวัน จ/พ/ศ — เต็มทุกสัปดาห์</span></li>
+    </ul>
+
+    <div class="card hero">
+      <p style="margin:0"><strong>ถ้ากระบวนการถูก เงินเป็นผลพลอยได้<br>ถ้าเล็งแต่เงิน กระบวนการจะพังก่อนเสมอ</strong></p>
+    </div>
+  </section>
+
+  <section class="doc" id="log">
+    <div class="eyebrow">สมุดบันทึก</div>
+    <h1>จดผ่าน Telegram</h1>
+    <p class="sub">ออกแบบมาแก้ข้อเดียว — ขี้เกียจจด ทุกอย่างเลยเหลือบรรทัดเดียว</p>
+
+    <pre><code>/log ขาย 4171 sl 4180 tp 4156 รีเทส 61.8
+/close 4156
+/stats</code></pre>
+
+    <p style="font-size:15px;color:var(--dim)">
+      เวลา · anchor · sd1 · ระยะ SD · สัญญา — <strong>ไม่ต้องพิมพ์</strong> JANIE เติมให้เอง
+    </p>
+
+    <div class="card warn">
+      <p style="margin:0;font-size:15px">
+        <strong>ขนาดไม้ต้องมีป้าย</strong> — <code>lot 2</code> · <code>x2</code> · <code>2 ไม้</code><br>
+        <small style="color:var(--faint)">ไม่งั้นเลข 61.8 ในเหตุผลจะกลายเป็นจำนวนสัญญา</small>
+      </p>
+    </div>
+
+    <h2>เพิ่มในช่องเหตุผลทุกไม้</h2>
+    <ul class="bare">
+      <li class="yes"><span class="mk">→</span><span>เข้าแบบไหน — <strong>เบรก</strong> หรือ <strong>รีเทส</strong></span></li>
+      <li class="yes"><span class="mk">→</span><span>30Y ไปทางไหน</span></li>
+      <li class="yes"><span class="mk">→</span><span>สเปรดตอนเข้า</span></li>
+    </ul>
+
+    <h2>Bias — เลข % แทนป้าย</h2>
+    <p style="font-size:15px;color:var(--dim)">คิดจากของใหม่ที่เพิ่มระหว่างช็อต ไม่ใช่ยอดสะสม เพราะยอดสะสมจะถูกวอลุ่มเช้ากลบจนขยับไม่ได้</p>
+    <pre><code>📊 Bias −39 · เอนพุท
+   ▆▄▇▂  (4 ช็อต)
+⚠️ ราคาขึ้นแต่ของใหม่เป็นพุท — แรงขาขึ้นเริ่มจาง</code></pre>
+    <p style="font-size:15px;color:var(--dim)">
+      <strong>เป็นตัวกรอง ไม่ใช่สัญญาณเข้า</strong> — วอลุ่มไม่บอกฝั่ง คอล +763 อาจเป็นคนซื้อคอล หรือคนขายคอลก็ได้
+    </p>
+
+    <div class="card">
+      <p style="margin:0;font-size:15px"><strong>23:00 ทุกคืน</strong> JANIE เช็คให้เอง — ไม้ค้างไม่ได้ปิด หรือวันที่ไม่มีบันทึกเลย</p>
+      <p style="margin:8px 0 0;font-size:14.5px;color:var(--faint)">ถ้าไม่ได้เทรด พิมพ์ <code>/note ไม่เทรด</code> — วันที่ไม่เทรดก็คือข้อมูล</p>
+    </div>
+  </section>
+
+  <section class="doc" id="day">
+    <div class="eyebrow">ตารางวันเทรด</div>
+    <h1>อังคาร · พฤหัส</h1>
+    <p class="sub">วันอื่นตั้ง limit แล้วเดินหนี</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="sn">☀</div>
+        <div class="sb"><b>เช้า ~08:00 — 2 นาที</b><small>ราคาเปิดวันนี้เท่าไร · เมื่อคืนปิดตรงไหน · ไม่ต้องคำนวณอะไร</small></div>
+      </div>
+      <div class="step">
+        <div class="sn">—</div>
+        <div class="sb"><b>กลางวัน — ไม่ต้องทำอะไร</b><small>ทำงานไป · ไม่ตั้ง limit ล่วงหน้า เพราะท่านี้ต้องเห็น BOS บน M1</small></div>
+      </div>
+      <div class="step">
+        <div class="sn">⚙</div>
+        <div class="sb"><b>17:30 — prep 5 นาที</b><small>QuikStrike (DTE ใกล้ 1) → จด ref · Vol · Ranges<br>วัด basis: GC2610 − ราคา CFD อ่านพร้อมกัน<br>เปิดแดชบอร์ด กดล็อก</small></div>
+      </div>
+      <div class="step">
+        <div class="sn">✓</div>
+        <div class="sb"><b>18:00–19:15 — ลอนดอนช่วงท้าย</b><small>เงียบกว่า แต่โครงสร้างสะอาด</small></div>
+      </div>
+      <div class="step stop">
+        <div class="sn">✕</div>
+        <div class="sb"><b>รอบข่าว ±15 นาที — เว้น</b><small>ท่านี้ต้องอ่าน BOS บน M1 ซึ่งช่วงนั้นอ่านไม่ได้</small></div>
+      </div>
+      <div class="step">
+        <div class="sn">✓</div>
+        <div class="sb"><b>21:00–23:00 — ช่วงดีที่สุด</b><small>เทรนด์เริ่มชัดหลัง NY เปิด · แท่งใหญ่มักเกิดตรงนี้</small></div>
+      </div>
+      <div class="step stop">
+        <div class="sn">■</div>
+        <div class="sb"><b>23:00 — ปิดจอ</b><small>ไม่ว่าจะได้หรือเสีย</small></div>
+      </div>
+    </div>
+
+    <div class="card warn">
+      <p style="margin:0;font-size:16px"><strong>แดง 2 ไม้เมื่อไหร่ = จบวันทันที</strong> ไม่ว่าจะกี่โมง</p>
+    </div>
+
+    <hr>
+
+    <h2>เช็ค 4 ข้อก่อนกด</h2>
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="sb"><b>ขาขึ้น ≥ 12 จุด</b><small>ลากฟีโบบน M5</small></div></div>
+      <div class="step"><div class="sn">2</div><div class="sb"><b>ย่อเข้า 50–61.8%</b></div></div>
+      <div class="step"><div class="sn">3</div><div class="sb"><b>มีของทับโซน</b><small>เส้น SD · เลขกลม · กำแพง OI</small></div></div>
+      <div class="step stop"><div class="sn">4</div><div class="sb"><b>BOS บน M1</b><small>ขาดข้อนี้ = ไม่มีไม้</small></div></div>
+    </div>
+
+    <div class="card hero" style="margin-top:20px">
+      <p style="margin:0"><strong>แม่น 2 ไม้ ชนะสาด 10 ไม้</strong></p>
+    </div>
+  </section>
+
+  <p class="foot">
+    เครื่องมือช่วยตัดสินใจ ไม่ใช่คำแนะนำการลงทุน<br>
+    โบรก/พร็อพส่วนใหญ่เป็น offshore ไม่ได้กำกับโดย ก.ล.ต. ไทย
+  </p>
+
+</main>
+<script>
+  (function(){
+    /* ---- ธีม ----
+       โปรแกรมอ่าน artifact จะปั๊ม data-theme ลงบน <html> ตามธีมของผู้ใช้
+       หน้านี้เลยใช้ data-force ของตัวเอง ซึ่งประกาศทีหลังจึงชนะ
+       ค่าเริ่มต้นคือมืด เพราะตั้งใจให้อ่านก่อนนอน */
+    var root = document.documentElement;
+    var btn  = document.getElementById('themeBtn');
+    var KEY  = 'tanu_theme';
+
+    function apply(mode){
+      root.dataset.force = mode;
+      btn.textContent = mode === 'light' ? '☀️' : '🌙';
+      btn.setAttribute('aria-pressed', mode === 'light');
+      try { localStorage.setItem(KEY, mode); } catch(e){}
+    }
+
+    var saved = null;
+    try { saved = localStorage.getItem(KEY); } catch(e){}
+    apply(saved === 'light' ? 'light' : 'dark');
+
+    btn.addEventListener('click', function(){
+      apply(root.dataset.force === 'light' ? 'dark' : 'light');
+    });
+
+    /* ---- แท็บตามตำแหน่งที่เลื่อน ---- */
+    var links = [].slice.call(document.querySelectorAll('.tabs a'));
+    var secs  = links.map(function(a){ return document.querySelector(a.getAttribute('href')); });
+    function sync(){
+      var y = window.scrollY + 110, cur = 0;
+      secs.forEach(function(s,i){ if (s && s.offsetTop <= y) cur = i; });
+      links.forEach(function(a,i){ a.classList.toggle('on', i === cur); });
+    }
+    window.addEventListener('scroll', sync, {passive:true});
+    sync();
+  })();
+</script>
+</body></html>
